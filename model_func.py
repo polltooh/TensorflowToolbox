@@ -51,8 +51,8 @@ def _conv3d(x, w, b, strides = [1,1,1,1,1], padding = 'SAME'):
 def add_leaky_relu(hl_tensor, leaky_param):
     return tf.maximum(hl_tensor, tf.mul(leaky_param, hl_tensor))
 
-def _deconv2d(x, w, b, output_shape, strides = [1,1,1,1]):
-    return tf.nn.bias_add(tf.nn.conv2d_transpose(x, w, output_shape, strides), b)
+def _deconv2d(x, w, b, output_shape, strides, padding):
+    return tf.nn.bias_add(tf.nn.conv2d_transpose(x, w, output_shape, strides, padding), b)
 
 def _unpooling(x, output_size):
     """ NEAREST_NEIGHBOR resize """
