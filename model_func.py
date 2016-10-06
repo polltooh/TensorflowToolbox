@@ -169,9 +169,20 @@ def triplet_loss(infer, labels, radius = 2.0):
 
     return loss
 
-def l2_loss(infer, label, layer_name):
+def l2_loss(infer, label, loss_type, layer_name):
+    """
+    Args:
+        
+        loss_type: 'SUM', 'MEAN'
+                'SUM' uses reduce_sum
+                'MEAN' uses reduce_mean
+    """
     with tf.variable_scope(layer_name):
-        loss = tf.reduce_mean(tf.square(infer - label))
+        if loss_type == 'SUM':
+            loss = tf.reduce_sum(tf.square(infer - label))
+        else:
+            loss = tf.reduce_mean(tf.square(infer - label))
+
     return loss
 
 def convolution_2d_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name):
