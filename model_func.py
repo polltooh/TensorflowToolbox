@@ -181,11 +181,11 @@ def convolution_2d_layer(x, kernel_shape, kernel_stride, wd, layer_name):
         conv = _conv2d(x, weights, biases, strides =  kernel_stride)
     return conv
 
-def deconvolution_2d_layer(x, kernel_shape, kernel_stride, output_shape, wd, layer_name):
+def deconvolution_2d_layer(x, kernel_shape, kernel_stride, output_shape, wd, padding, layer_name):
     with tf.variable_scope(layer_name):
         weights = _variable_with_weight_decay('weights', kernel_shape, wd)
         biases = _variable_on_cpu('biases', [kernel_shape[-2]], tf.constant_initializer(0.0))
-        deconv = _deconv2d(x, weights, biases, output_shape, kernel_stride)
+        deconv = _deconv2d(x, weights, biases, output_shape, kernel_stride, padding)
     return deconv
 
 def maxpool_2d_layer(x, kernel_shape, kernel_stride, layer_name):
