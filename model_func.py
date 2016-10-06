@@ -42,8 +42,8 @@ def _variable_with_weight_decay(name, shape, wd = 0.0):
         tf.add_to_collection('losses', weight_decay)
     return var
 
-def _conv2d(x, w, b, strides = [1,1,1,1]):
-    return tf.nn.bias_add(tf.nn.conv2d(x, w,strides=strides, padding = 'SAME'), b)
+def _conv2d(x, w, b, strides, padding):
+    return tf.nn.bias_add(tf.nn.conv2d(x, w,strides=strides, padding = padding), b)
 
 def _conv3d(x, w, b, strides = [1,1,1,1,1], padding = 'SAME'):
     return tf.nn.bias_add(tf.nn.conv3d(x, w,strides=strides, padding = padding), b)
@@ -174,14 +174,14 @@ def l2_loss(infer, label, layer_name):
         loss = tf.reduce_mean(tf.square(infer - label))
     return loss
 
-def convolution_2d_layer(x, kernel_shape, kernel_stride, wd, layer_name):
+def convolution_2d_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name):
     with tf.variable_scope(layer_name):
         weights = _variable_with_weight_decay('weights', kernel_shape, wd)
         biases = _variable_on_cpu('biases', [kernel_shape[-1]], tf.constant_initializer(0.0))
-        conv = _conv2d(x, weights, biases, strides =  kernel_stride)
+        conv = _conv2d(x, weights, biases, kernel_stride, padding)
     return conv
 
-def deconvolution_2d_layer(x, kernel_shape, kernel_stride, output_shape, wd, padding, layer_name):
+def deconvolution_2d_layer(x, kernel_shape, kernel_stride, output_shape, padding, wd, layer_name):
     with tf.variable_scope(layer_name):
         weights = _variable_with_weight_decay('weights', kernel_shape, wd)
         biases = _variable_on_cpu('biases', [kernel_shape[-2]], tf.constant_initializer(0.0))
