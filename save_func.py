@@ -2,8 +2,6 @@ import tensorflow as tf
 import time
 
 
-FLAGS = tf.app.flags.FLAGS
-
 def add_train_var():
     """ add all trainable variable to summary"""
     for var in tf.trainable_variables():
@@ -19,7 +17,7 @@ def restore_model(sess, saver, model_dir, model_name = None):
             if model_name is None, restore the last one
     """
     if model_name is None:
-            ckpt = tf.train.get_checkpoint_state(FLAGS.model_dir)
+            ckpt = tf.train.get_checkpoint_state(model_dir)
             if ckpt and ckpt.all_model_checkpoint_paths[-1]:
                     print("restore " + ckpt.all_model_checkpoint_paths[-1])
                     saver.restore(sess, ckpt.all_model_checkpoint_paths[-1])

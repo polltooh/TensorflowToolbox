@@ -15,7 +15,7 @@ def get_dir_list(frame_dir):
         frame_dir = frame_dir + "/"
 
     dir_list = os.listdir(frame_dir)
-    dir_list = [frame_dir + image_dir for image_dir in dir_list]
+    dir_list = [frame_dir + image_dir for image_dir in dir_list if os.path.isdir(frame_dir + image_dir)]
     return dir_list
 
 def delete_last_empty_line(s):

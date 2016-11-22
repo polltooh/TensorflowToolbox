@@ -63,3 +63,4 @@ def file_queue_to_batch_data(filename_queue, data_classes, is_train, batch_size,
                             tensor_list, batch_size=batch_size, num_threads = 2)
 
     return batch_tensor_list
+
