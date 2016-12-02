@@ -60,8 +60,8 @@ class ImageClass():
         image_tensor = tf.read_file(filename)
         image_tensor = self.decode_fun(image_tensor, channels = self.channels, ratio = self.ratio)
         image_tensor = tf.image.convert_image_dtype(image_tensor, tf.float32)
-        image_tensor = tf.image.resize_images(image_tensor,( 
-                                        self.shape[0] + self.offset, self.shape[1] + self.offset))
+        image_tensor = tf.image.resize_images(image_tensor, 
+                                        (self.shape[0] + self.offset, self.shape[1] + self.offset))
         
         if distort_data:
                 # it will crop in the function
@@ -77,18 +77,19 @@ class ImageClass():
 
     def distort_op(self, image_tensor):
         """ copied from tensorflow cifar10 tutorial"""
+        distorted_image = image_tensor
         # Randomly crop a [height, width] section of the image.
-        distorted_image = tf.random_crop(image_tensor, [self.shape[0],self.shape[1], self.channels])
+        #distorted_image = tf.random_crop(image_tensor, [self.shape[0],self.shape[1], self.channels])
 
         # Randomly flip the image horizontally.
-        distorted_image = tf.image.random_flip_left_right(distorted_image)
+        #distorted_image = tf.image.random_flip_left_right(distorted_image)
 
         # Because these operations are not commutative, consider randomizing
         # the order their operation.
-        # distorted_image = tf.image.random_brightness(distorted_image,
-        # 									   max_delta=63)
-        # distorted_image = tf.image.random_contrast(distorted_image,
-        # 									 lower=0.2, upper=1.8)
+        distorted_image = tf.image.random_brightness(distorted_image,
+         									   max_delta=0.2)
+        distorted_image = tf.image.random_contrast(distorted_image,
+         									 lower=0.1, upper=0.4)
 
         return distorted_image
 
