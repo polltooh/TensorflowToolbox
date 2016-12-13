@@ -21,3 +21,4 @@ def load_proto(file_name):
 if __name__ == "__main__":
 	file_name = "model_proto"
 	model_param = load_proto(file_name)
+        print(model_param)

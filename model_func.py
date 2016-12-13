@@ -295,6 +295,11 @@ def res_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name, repeat_nu
         final_conv = tf.add(conv,x, 'res_connect')
     return final_conv
 
+def batch_norm_layer(x, is_train):
+    bn = _batch_norm(x, is_training = is_train)
+    return bn
+
+
 def res_pad(x, input_channel, output_channel, layer_name):
     """
     Args:

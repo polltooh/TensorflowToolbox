@@ -87,9 +87,9 @@ class ImageClass():
         # Because these operations are not commutative, consider randomizing
         # the order their operation.
         distorted_image = tf.image.random_brightness(distorted_image,
-         									   max_delta=0.2)
+         									   max_delta=0.5)
         distorted_image = tf.image.random_contrast(distorted_image,
-         									 lower=0.1, upper=0.4)
+         									 lower=0.1, upper=0.8)
 
         return distorted_image
 
