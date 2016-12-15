@@ -121,7 +121,7 @@ def _batch_norm(inputs, decay = 0.999, center = True, scale = False, epsilon = 0
         # moving_collections = [moving_vars, tf.GraphKeys.MOVING_AVERAGE_VARIABLES]
         moving_mean = _variable_on_cpu('moving_mean', params_shape,tf.zeros_initializer, trainable = False)
         # tf.add_to_collection(tf.GraphKeys.MOVING_AVERAGE_VARIABLES, moving_mean)
-        moving_variance = _variable_on_cpu('moving_variance', params_shape, tf.ones_initializer, trainable = False)
+        moving_variance = _variable_on_cpu('moving_variance', params_shape, tf.ones_initializer(), trainable = False)
         # tf.add_to_collection(tf.GraphKeys.MOVING_AVERAGE_VARIABLES, moving_variance)
         
         def train_phase():

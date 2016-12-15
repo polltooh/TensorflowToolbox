@@ -5,12 +5,12 @@ import time
 def add_train_var():
     """ add all trainable variable to summary"""
     for var in tf.trainable_variables():
-            tf.histogram_summary(var.op.name, var)
+            tf.summary.histogram(var.op.name, var)
 
 def add_loss(loss_scope = 'losses'):
     """ add all losses to summary """
     for l in tf.get_collection(loss_scope):
-            tf.scalar_summary(l.op.name, l)
+            tf.summary.scalar(l.op.name, l)
 
 def add_image(image_collection):
     for var in tf.get_collection(image_collection):
