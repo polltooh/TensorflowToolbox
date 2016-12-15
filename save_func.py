@@ -14,7 +14,7 @@ def add_loss(loss_scope = 'losses'):
 
 def add_image(image_collection):
     for var in tf.get_collection(image_collection):
-        tf.image_summary(var.op.name, var, var.get_shape()[0])
+        tf.summary.image(var.op.name, var, var.get_shape()[0])
 
 def restore_model(sess, saver, model_dir, model_name = None):
     """ restore model:
