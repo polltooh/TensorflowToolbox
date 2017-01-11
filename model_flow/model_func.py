@@ -353,5 +353,5 @@ def atrous_convolution_layer(x, kernel_shape, rate, padding, wd, layer_name):
         weights = _variable_with_weight_decay('weights', kernel_shape, wd)
         biases = _variable_on_cpu('biases', [kernel_shape[-1]], tf.constant_initializer(0.0))
         atrous_conv = tf.nn.atrous_conv2d(x, weights, rate, padding, name=None)
-	return atrous_conv
+    return atrous_conv
 

@@ -21,26 +21,32 @@ class DataArg(object):
 		pass
 
 	def __call__(self, data, arg_dict):
+		seed = self.get_random_seed()
 		if not isinstance(data, list):
-			data = self.arg_single(data, arg_dict)
+			data = self.arg_single(data, arg_dict, seed)
 		else:
-			seed = self.get_random_seed()
 			for i in range(len(data)):
 				data[i] = self.arg_single(data[i], arg_dict[i], seed)
 		return data
 
 	def get_random_seed(self):
 		return random.randint(0, 20000)
+	
+	def get_random_bboffset(self, wmax, hmax, seed):
+		random.seed(seed)
+		woffset = random.randint(0, wmax)
+		hoffset = random.randint(0, hmax)
+		return woffset, hoffset
 		
-	def arg_single(self,data, arg_dict, seed = -1):
+	def arg_single(self,data, arg_dict, seed):
 		"""
 			if seed == -1, the seed won't be set. For single data purpose
 			if seed != -1, it will perform the same random for all
 					the data
 		"""
 
-		if seed != -1:
-			tf.set_random_seed(seed)
+		#if seed != -1:
+		#	tf.set_random_seed(seed)
 
 		if "image_whiten" in arg_dict and arg_dict["image_whiten"]:
 			data = tf.image.per_image_standardization(data)
@@ -51,29 +57,60 @@ class DataArg(object):
 
 		if "rbright_max" in arg_dict:
 			data = tf.image.random_brightness(data, 
-					arg_dict["rbright+max"])
+					arg_dict["rbright+max"],
+					seed = seed)
 
 		if "rcontrast_lower_upper" in arg_dict:
 			data = tf.image.random_contrast(data, 
 					arg_dict["rcontrast_lower_upper"][0], 
-					arg_dict["rcontrast_lower_upper"][1])
+					arg_dict["rcontrast_lower_upper"][1],
+					seed = seed)
 
 		if "rhue_max" in arg_dict:
-			data = tf.image.random_hue(data, arg_dict["rhue_max"])
+			data = tf.image.random_hue(data, 
+					arg_dict["rhue_max"],
+					seed = seed)
 
 		if "rsat_lower_upper" in arg_dict:
 			data = tf.image.random_saturation(data,
 					arg_dict["rsat_lower_upper"][0], 
-					arg_dict["rsat_lower_upper"][1])
+					arg_dict["rsat_lower_upper"][1],
+					seed = seed)
 		
 		if "rflip_updown" in arg_dict and arg_dict["rflip_updown"]:
-			data = tf.image.random_flip_up_down(data)
+			data = tf.image.random_flip_up_down(data, seed = seed)
 
 		if "rflip_leftright" in arg_dict and arg_dict["rflip_leftright"]:
-			data = tf.image.random_flip_left_right(data)
+			data = tf.image.random_flip_left_right(data, seed)
 
 		if "rcrop_size" in arg_dict:
-			data = tf.random_crop(data, arg_dict["rcrop_size"])
+			raise NotImplementedError
+			"""
+				The random_crop in tensorflow with the same seed 
+				will produce undefined behavior
+			"""
+			rcrop_size = arg_dict["rcrop_size"]
+			data = tf.random_crop(data, rcrop_size, seed = seed)
+			#if rcrop_size[2] == 1:
+			#	rcrop_size[2] = 3
+			#	data = tf.tile(data, [1,1,3])
+			#	data = tf.random_crop(data, 
+			#		rcrop_size, seed = 0)
+			#	data = data[:,:,1]
+			#	data = tf.expand_dims(data, 2)
+			#else:
+			#	data = tf.random_crop(data, 
+			#		rcrop_size, seed = 0)
+			#data_w = data.get_shape().as_list()[0]
+			#data_h = data.get_shape().as_list()[1]
+			#woffset, hoffset = self.get_random_bboffset(
+			#			data_w - rcrop_size[0], 
+			#			data_h - rcrop_size[1], seed)
+
+			#data = tf.image.crop_to_bounding_box(data, 
+			#			woffset, hoffset, rcrop_size[0], rcrop_size[1])
+
+
 			
 		return data
 			
