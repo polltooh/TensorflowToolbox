@@ -1,0 +1,37 @@
+batch_size: 1
+feature_row: 256
+feature_col: 256
+feature_cha: 3
+off_set: 0
+label_row: 256
+label_col: 256
+label_cha: 1
+leaky_param:0.01
+weight_decay:0.0004
+
+data_arg.rflip_leftright: True
+label_arg.rflip_leftright: True
+
+train_file_name:../file_list/test_file2.txt
+test_file_name:../file_list/test_file2.txt
+
+init_learning_rate: 0.01
+max_training_iter:100
+test_per_iter:10
+train_log_dir:logs/
+model_dir:models/
+restore_model:False
+
+#st_len: 50
+#iheight: 64
+#iwidth: 64
+#code_len: 100
+#init_learning_rate: 0.00002
+#max_training_iter:1000000
+#train_log_dir:st_gan_log
+#file_name:file_list/train_list1.txt
+#model_dir:model/
+#model:model
+#restore_model:False
+#g_iter:2
+#d_iter:1
