@@ -23,10 +23,12 @@ class DataArg(object):
 	def __call__(self, data, arg_dict):
 		seed = self.get_random_seed()
 		if not isinstance(data, list):
-			data = self.arg_single(data, arg_dict, seed)
+			data = self.arg_single(data, arg_dict, seed, False)
 		else:
 			for i in range(len(data)):
-				data[i] = self.arg_single(data[i], arg_dict[i], seed)
+				data[i] = self.arg_single(data[i], arg_dict, seed, True)
+			data = self.arg_list(data, arg_dict, seed)
+
 		return data
 
 	def get_random_seed(self):
@@ -38,7 +40,7 @@ class DataArg(object):
 		hoffset = random.randint(0, hmax)
 		return woffset, hoffset
 		
-	def arg_single(self,data, arg_dict, seed):
+	def arg_single(self,data, arg_dict, seed, is_list):
 		"""
 			if seed == -1, the seed won't be set. For single data purpose
 			if seed != -1, it will perform the same random for all
@@ -53,7 +55,6 @@ class DataArg(object):
 
 		if "center_crop_frac" in arg_dict:
 			data = tf.image.central_crop(data, arg_dict["center_crop_frac"])
-
 
 		if "rbright_max" in arg_dict:
 			data = tf.image.random_brightness(data, 
@@ -76,21 +77,57 @@ class DataArg(object):
 					arg_dict["rsat_lower_upper"][0], 
 					arg_dict["rsat_lower_upper"][1],
 					seed = seed)
-		
+
+		if not is_list:
+			if "rflip_updown" in arg_dict and arg_dict["rflip_updown"]:
+				data = tf.image.random_flip_up_down(data, seed = seed)
+
+			if "rflip_leftright" in arg_dict and arg_dict["rflip_leftright"]:
+				data = tf.image.random_flip_left_right(data, seed)
+
+			if "rcrop_size" in arg_dict:
+				rcrop_size = arg_dict["rcrop_size"]
+				data = tf.random_crop(data, rcrop_size, seed = seed)
+
+		return data
+
+	def arg_list(self, data, arg_dict, seed):
+		assert(isinstance(data, list))
+
 		if "rflip_updown" in arg_dict and arg_dict["rflip_updown"]:
-			data = tf.image.random_flip_up_down(data, seed = seed)
+			rflip_ud_op = tf.random_uniform([], minval = 0, 
+						maxval = 2, dtype = tf.int32, seed = seed)
+			mirror = tf.less(tf.pack([rflip_ud_op, 2, 2]), 1)
+			for i in range(len(data)):
+				data[i] = tf.reverse(data[i], mirror)
 
 		if "rflip_leftright" in arg_dict and arg_dict["rflip_leftright"]:
-			data = tf.image.random_flip_left_right(data, seed)
+			rflip_lr_op = tf.random_uniform([], minval = 0, 
+						maxval = 2, dtype = tf.int32, seed = seed)
+			mirror = tf.less(tf.pack([2, rflip_lr_op, 2]), 1)
+			for i in range(len(data)):
+				data[i] = tf.reverse(data[i], mirror)
 
 		if "rcrop_size" in arg_dict:
-			raise NotImplementedError
-			"""
-				The random_crop in tensorflow with the same seed 
-				will produce undefined behavior
-			"""
+			i_height, i_width, i_cha = data[0].get_shape().as_list()
 			rcrop_size = arg_dict["rcrop_size"]
-			data = tf.random_crop(data, rcrop_size, seed = seed)
+			offset_height_max = i_height - rcrop_size[0]
+			offset_width_max = i_width - rcrop_size[1]
+
+			r_weight = tf.random_uniform([], 
+						minval = 0, maxval = offset_height_max, 
+						dtype=tf.int32)	
+
+			r_width = tf.random_uniform([], 
+						minval = 0, maxval = offset_width_max, 
+						dtype=tf.int32)
+
+			for i in range(len(data)):
+				data[i] = tf.image.crop_to_bounding_box(data[i], 
+						r_weight, r_width, rcrop_size[0], rcrop_size[1])
+
+		return data
+
 			#if rcrop_size[2] == 1:
 			#	rcrop_size[2] = 3
 			#	data = tf.tile(data, [1,1,3])
@@ -112,7 +149,6 @@ class DataArg(object):
 
 
 			
-		return data
 			
 		#arg_dict.image_whiten = False [False or True]
 		#arg_dict.center_crop_frac = 0.5 [0,1]
