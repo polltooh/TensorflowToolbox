@@ -44,15 +44,11 @@ class BINClass():
         return bin_tensor
 
 class ImageClass():
-    def __init__(self, shape, channels, offset, ratio = None, name = None):
-        """offset: the difference between cropped image and orginal image 
-                final shape will be shape
-        """
+    def __init__(self, shape, channels, ratio = None, name = None):
         self.channels = channels
         self.ratio = ratio
         self.name = name
         self.shape = shape
-        self.offset = offset
         self.decode_fun = None
 
     def decode(self, filename):
@@ -60,14 +56,14 @@ class ImageClass():
         image_tensor = self.decode_fun(image_tensor, channels = self.channels, ratio = self.ratio)
         image_tensor = tf.image.convert_image_dtype(image_tensor, tf.float32)
         image_tensor = tf.image.resize_images(image_tensor, 
-                                        self.shape[0] + self.offset, self.shape[1] + self.offset)
+                                        self.shape[0] , self.shape[1])
         
         return image_tensor
 
 
 class JPGClass(ImageClass):
-    def __init__(self, shape, channels = None, off_set = None, ratio = None, name = None):
-        ImageClass.__init__(self, shape, channels, off_set, ratio, name)
+    def __init__(self, shape, channels = None, ratio = None, name = None):
+        ImageClass.__init__(self, shape, channels, ratio, name)
         """ 
             used for load jpg image file
         """
@@ -77,7 +73,7 @@ class PNGClass(ImageClass):
     """ 
         used for load png image file
     """
-    def __init__(self, shape, channels = None, off_set = None, ratio = None, name = None):
-        ImageClass.__init__(self, shape, channels, off_set, ratio, name)
+    def __init__(self, shape, channels = None, ratio = None, name = None):
+        ImageClass.__init__(self, shape, channels, ratio, name)
         self.decode_fun = tf.image.decode_png
 

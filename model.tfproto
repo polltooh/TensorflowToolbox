@@ -9,6 +9,8 @@ label_cha: 1
 leaky_param:0.01
 weight_decay:0.0004
 
+data_list:[1,2,3]
+
 data_arg.rflip_leftright: True
 label_arg.rflip_leftright: True
 
