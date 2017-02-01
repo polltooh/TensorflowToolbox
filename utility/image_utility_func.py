@@ -34,3 +34,19 @@ def resize_image(image, rshape):
         rshape: (new_image_hegiht, new_image_width)
     """
     return cv2.resize(image, rshape)
+
+def get_bbox(image, threshold_v):
+	"""
+	Args:
+		threshold_v: threshold value, normally 127
+	Return:
+		bbox: list [x, y, w, h], bounding box
+	"""
+
+	ret,thresh = cv2.threshold(image, threshold_v, 255, 0)
+	im2,contours,hierarchy = cv2.findContours(thresh, 1, 2)
+	cnt = contours[0]
+	bbox = cv2.boundingRect(cnt)
+	return bbox 
+
+

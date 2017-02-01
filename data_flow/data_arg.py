@@ -26,8 +26,8 @@ class DataArg(object):
 			data = self.arg_single(data, arg_dict, seed, False)
 		else:
 			for i in range(len(data)):
-				data[i] = self.arg_single(data[i], arg_dict, seed, True)
-			data = self.arg_list(data, arg_dict, seed)
+				data[i] = self.arg_single(data[i], arg_dict[i], seed, True)
+			data = self.arg_list(data, arg_dict[0], seed)
 
 		return data
 
@@ -58,7 +58,7 @@ class DataArg(object):
 
 		if "rbright_max" in arg_dict:
 			data = tf.image.random_brightness(data, 
-					arg_dict["rbright+max"],
+					arg_dict["rbright_max"],
 					seed = seed)
 
 		if "rcontrast_lower_upper" in arg_dict:
