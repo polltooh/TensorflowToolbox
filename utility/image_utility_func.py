@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+CV_VERSION = cv2.__version__.split(".")[0]
+
 def load_image(image_name):
     image = cv2.imread(image_name)
     return image
@@ -44,7 +46,11 @@ def get_bbox(image, threshold_v):
 	"""
 
 	ret,thresh = cv2.threshold(image, threshold_v, 255, 0)
-	im2,contours,hierarchy = cv2.findContours(thresh, 1, 2)
+	if CV_VERSION == '2':
+		contours,hierarchy = cv2.findContours(thresh, 1, 2)
+	elif CV_VERSION == '3':
+		im2,contours,hierarchy = cv2.findContours(thresh, 1, 2)
+	
 	cnt = contours[0]
 	bbox = cv2.boundingRect(cnt)
 	return bbox 
