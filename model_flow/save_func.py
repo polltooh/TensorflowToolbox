@@ -13,9 +13,17 @@ def add_loss(loss_scope = 'losses'):
     for l in tf.get_collection(loss_scope):
         tf.summary.scalar(l.op.name, l)
 
-def add_image(image_collection):
+def add_image(image_collection, image_num = -1):
+    """
+    Args:
+        image_num: the number of images to save
+                   if it is set to be -1, the whole batch will be saved
+    """
+
     for var in tf.get_collection(image_collection):
-        tf.summary.image(var.op.name, var, var.get_shape()[0])
+        if image_num == -1:
+            image_num = var.get_shape()[0]
+        tf.summary.image(var.op.name, var, image_num)
 
 def restore_model(sess, saver, model_dir, model_name = None):
     """ restore model:
