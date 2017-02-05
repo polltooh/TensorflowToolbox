@@ -1,6 +1,8 @@
 import tensorflow as tf
 import copy
 
+TF_VERSION = tf.__version__.split('.')[1]
+
 def create_list_object(Object, count):
     """ 
     create a list of obejct using deep copy in 
@@ -55,8 +57,12 @@ class ImageClass():
         image_tensor = tf.read_file(filename)
         image_tensor = self.decode_fun(image_tensor, channels = self.channels, ratio = self.ratio)
         image_tensor = tf.image.convert_image_dtype(image_tensor, tf.float32)
-        image_tensor = tf.image.resize_images(image_tensor, 
+        if TF_VERSION > '11':
+            image_tensor = tf.image.resize_images(image_tensor, 
                                         [self.shape[0] , self.shape[1]])
+        else:
+            image_tensor = tf.image.resize_images(image_tensor, 
+                                        self.shape[0] , self.shape[1])
         
         return image_tensor
 
