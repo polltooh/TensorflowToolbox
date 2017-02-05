@@ -37,6 +37,9 @@ def save_model(sess, saver, model_dir, iteration):
     curr_time = time.strftime("%Y%m%d_%H%M")
     model_name = model_dir + '/' + curr_time + \
                             '_iter_' + str(iteration) + '_model.ckpt'
+    if not os.exists(model_dir):
+        os.makedirs(model_dir)
+
     saver.save(sess, model_name)
 
 def add_value_sum(summary_writer, value, name):
