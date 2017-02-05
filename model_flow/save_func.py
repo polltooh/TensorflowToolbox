@@ -5,12 +5,12 @@ import time
 def add_train_var():
     """ add all trainable variable to summary"""
     for var in tf.trainable_variables():
-            tf.summary.histogram(var.op.name, var)
+        tf.summary.histogram(var.op.name, var)
 
 def add_loss(loss_scope = 'losses'):
     """ add all losses to summary """
     for l in tf.get_collection(loss_scope):
-            tf.summary.scalar(l.op.name, l)
+        tf.summary.scalar(l.op.name, l)
 
 def add_image(image_collection):
     for var in tf.get_collection(image_collection):
@@ -21,15 +21,15 @@ def restore_model(sess, saver, model_dir, model_name = None):
             if model_name is None, restore the last one
     """
     if model_name is None:
-            ckpt = tf.train.get_checkpoint_state(model_dir)
-            if ckpt and ckpt.all_model_checkpoint_paths[-1]:
-                    print("restore " + ckpt.all_model_checkpoint_paths[-1])
-                    saver.restore(sess, ckpt.all_model_checkpoint_paths[-1])
-            else:
-                    print('no check point')
+        ckpt = tf.train.get_checkpoint_state(model_dir)
+        if ckpt and ckpt.all_model_checkpoint_paths[-1]:
+            print("restore " + ckpt.all_model_checkpoint_paths[-1])
+            saver.restore(sess, ckpt.all_model_checkpoint_paths[-1])
+        else:
+            print('no check point')
     else:
-            print("restore " + model_name)
-            saver.restore(sess, model_dir + '/' + model_name)
+        print("restore " + model_name)
+        saver.restore(sess, model_dir + '/' + model_name)
 	
 def save_model(sess, saver, model_dir, iteration):
     """ save the current model"""
