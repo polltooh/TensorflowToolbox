@@ -1,5 +1,6 @@
 import tensorflow as tf
 import time
+import os
 
 
 def add_train_var():
