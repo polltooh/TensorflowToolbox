@@ -51,10 +51,10 @@ def save_model(sess, saver, model_dir, iteration):
 
     saver.save(sess, model_name)
 
-def add_value_sum(summary_writer, value, name):
+def add_value_sum(summary_writer, value, name, iteration):
     """ add python value to tensorboard """
     summary = tf.Summary(value = [tf.Summary.Value(tag = name, simple_value = value)])	
-    summary_writer.add_summary(summary)
+    summary_writer.add_summary(summary, iteration)
 
 
 def group_mv_ops(train_op, moving_average_decay, global_step):
