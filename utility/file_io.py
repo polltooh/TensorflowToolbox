@@ -1,6 +1,7 @@
 import os 
 import random
 import numpy as np
+import importlib
 
 def get_listfile(image_dir, extension = ".jpg"):
     if not image_dir.endswith("/"):
@@ -58,3 +59,10 @@ def remove_extension(file_name):
         return file_name
     else:
         return file_name[0:index]
+ 
+def import_module_class(module_name, class_name = None):
+    module = importlib.import_module(module_name) 
+    if class_name == None:
+        return module
+    else:
+        return getattr(module, class_name)

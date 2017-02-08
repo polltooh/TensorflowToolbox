@@ -2,11 +2,17 @@ import tensorflow as tf
 import time
 import os
 
+TF_VERSION = tf.__version__.split(".")[1]
 
 def add_train_var():
     """ add all trainable variable to summary"""
-    for var in tf.trainable_variables():
-        tf.summary.histogram(var.op.name, var)
+    if TF_VERSION > '11':
+        for var in tf.trainable_variables():
+            tf.summary.histogram(var.op.name, var)
+    else:
+        for var in tf.trainable_variables():
+            tf.histogram_summary(var.op.name, var)
+
 
 def add_loss(loss_scope = 'losses'):
     """ add all losses to summary """
@@ -19,11 +25,16 @@ def add_image(image_collection, image_num = -1):
         image_num: the number of images to save
                    if it is set to be -1, the whole batch will be saved
     """
-
-    for var in tf.get_collection(image_collection):
-        if image_num == -1:
-            image_num = var.get_shape()[0]
-        tf.summary.image(var.op.name, var, image_num)
+    if TF_VERSION > '11':
+        for var in tf.get_collection(image_collection):
+            if image_num == -1:
+                image_num = var.get_shape()[0]
+            tf.summary.image(var.op.name, var, image_num)
+    else:
+        for var in tf.get_collection(image_collection):
+            if image_num == -1:
+                image_num = var.get_shape()[0]
+            tf.image_summary(var.op.name, var, image_num)
 
 def restore_model(sess, saver, model_dir, model_name = None):
     """ restore model:
