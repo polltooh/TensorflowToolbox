@@ -12,4 +12,4 @@ export PYTHONPATH=$PYTHONPATH:/path/to/store/<br>
 Then you should be able to import TensorflowToolbox from anywhere
 
 Please see my github: https://github.com/polltooh/video_analysis 
-for example.
+for usage example.
