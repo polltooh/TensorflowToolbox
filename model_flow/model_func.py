@@ -48,8 +48,13 @@ def _conv2d(x, w, b, strides, padding):
 def _conv3d(x, w, b, strides = [1,1,1,1,1], padding = 'SAME'):
     return tf.nn.bias_add(tf.nn.conv3d(x, w,strides=strides, padding = padding), b)
 
-def add_leaky_relu(hl_tensor, leaky_param):
-    return tf.maximum(hl_tensor, tf.mul(leaky_param, hl_tensor))
+def add_leaky_relu(hl_tensor, leaky_param, layer_name = None):
+    if layer_name is None:
+        layer_name = hl_tensor.op.name + "_lrelu"
+
+    with tf.variable_scope(layer_name):
+        leaky_relu = tf.maximum(hl_tensor, tf.mul(leaky_param, hl_tensor))
+    return leaky_relu
 
 def _deconv2d(x, w, b, output_shape, strides, padding):
     return tf.nn.bias_add(tf.nn.conv2d_transpose(x, w, output_shape, strides, padding), b)
