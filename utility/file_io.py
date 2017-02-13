@@ -66,3 +66,18 @@ def import_module_class(module_name, class_name = None):
         return module
     else:
         return getattr(module, class_name)
+
+def check_exist(file_name):
+    """
+    Args:
+        file_name: file name of the file list
+                    i.e.: train_list.txt
+    """
+    file_list = read_file(file_name)
+    for i, f in enumerate(file_list):
+        f_l = f.split(" ")
+        for ff in f_l:
+            is_exist = os.path.exists(ff)
+            if not is_exist:
+                raise FileNotFoundError("In %s, row: %d, "
+                "%s does not exist" % (file_name, i, ff))
