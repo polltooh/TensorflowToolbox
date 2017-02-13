@@ -1,7 +1,5 @@
 import file_io
 
-
-
 def check_bool(val):
 	if val == 'true' or val == "True":
 		val = True
@@ -26,6 +24,11 @@ def check_list(val):
 				val[i] = check_digit(val[i])
 	return val
 
+def check_none(val):
+    if isinstance(val, str):
+        if val == "None" or val == "none":
+            return None
+
 def load_proto(file_name):
 	model_param = dict()
 	param = file_io.read_file(file_name)
@@ -38,6 +41,7 @@ def load_proto(file_name):
 		val = check_digit(val)
 		val = check_bool(val)
 		val = check_list(val)
+        val = check_none(val)
 
 		model_param[name] = val
 
