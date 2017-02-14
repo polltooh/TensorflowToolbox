@@ -113,7 +113,7 @@ def _batch_norm(inputs, decay = 0.999, center = True, scale = False, epsilon = 0
             a tensor representing the output of the operation.
     """
     inputs_shape = inputs.get_shape()
-    with tf.variable_scope([inputs], scope, 'BatchNorm', reuse = reuse):
+    with tf.variable_op_scope([inputs], scope, 'BatchNorm', reuse = reuse):
         axis = list(range(len(inputs_shape) - 1))
         params_shape = inputs_shape[-1:]
         beta, gamma = None, None
