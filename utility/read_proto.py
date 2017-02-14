@@ -28,6 +28,7 @@ def check_none(val):
     if isinstance(val, str):
         if val == "None" or val == "none":
             return None
+    return val
 
 def load_proto(file_name):
     model_param = dict()
