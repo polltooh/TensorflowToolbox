@@ -191,6 +191,19 @@ def l2_loss(infer, label, loss_type, layer_name):
 
     return loss
 
+def image_l2_loss(infer, label, layer_name):
+    """
+    Args:
+        infer: [batch_size, height, width, channel]
+        label: [batch_size, height, width, channel]
+    Return:
+        for each batch: sum([infer - label] ^ 2), then
+            calculate the mean for the entire batch
+    """
+    with tf.variable_scope(layer_name):
+        l2_loss = tf.reduce_mean(tf.reduce_sum(tf.square(infer - label), 
+                        [1,2,3]), name = 'l2_loss')
+    return l2_loss 
 
 def huber_loss(infer, label, epsilon, layer_name):
     """
