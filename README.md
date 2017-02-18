@@ -11,5 +11,14 @@ export PYTHONPATH=$PYTHONPATH:/path/to/store/<br>
 
 Then you should be able to import TensorflowToolbox from anywhere
 
-Please see my github: https://github.com/polltooh/video_analysis 
-for usage example.
+Please see my other githubs for usage example
+
+video_analysis: https://github.com/polltooh/video_analysis 
+Fully convolution network for density map estimation or segmentation
+
+IIGAN: https://github.com/polltooh/IIGA://github.com/polltooh/IIGAN 
+image to image translation with GAN.
+
+video_lstm: https://github.com/polltooh/video_lst://github.com/polltooh/video_lstm
+Video analysis with lstm network. Still in development
+
