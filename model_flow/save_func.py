@@ -40,6 +40,9 @@ def restore_model(sess, saver, model_dir, model_name = None):
     """ restore model:
             if model_name is None, restore the last one
     """
+    if not model_dir.endswith("/"):
+        model_dir += "/"
+
     if model_name is None:
         ckpt = tf.train.get_checkpoint_state(model_dir)
         if ckpt and ckpt.all_model_checkpoint_paths[-1]:
@@ -49,13 +52,15 @@ def restore_model(sess, saver, model_dir, model_name = None):
             print('no check point')
     else:
         print("restore " + model_name)
-        saver.restore(sess, model_dir + '/' + model_name)
+        saver.restore(sess, model_dir + model_name)
 	
 def save_model(sess, saver, model_dir, iteration):
     """ save the current model"""
+    if not model_dir.endswith("/"):
+        model_dir += "/"
 
     curr_time = time.strftime("%Y%m%d_%H%M")
-    model_name = model_dir + '/' + curr_time + \
+    model_name = model_dir + curr_time + \
                             '_iter_' + str(iteration) + '_model.ckpt'
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
