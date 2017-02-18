@@ -20,5 +20,5 @@ IIGAN: https://github.com/polltooh/IIGA://github.com/polltooh/IIGAN <br>
 image to image translation with GAN.
 
 video_lstm: https://github.com/polltooh/video_lst://github.com/polltooh/video_lstm <br>
-Video analysis with lstm network. Still in development
+Video analysis with lstm network. 
 
