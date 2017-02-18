@@ -13,12 +13,12 @@ Then you should be able to import TensorflowToolbox from anywhere
 
 Please see my other githubs for usage example
 
-video_analysis: https://github.com/polltooh/video_analysis 
+video_analysis: https://github.com/polltooh/video_analysis <br>
 Fully convolution network for density map estimation or segmentation
 
-IIGAN: https://github.com/polltooh/IIGA://github.com/polltooh/IIGAN 
+IIGAN: https://github.com/polltooh/IIGA://github.com/polltooh/IIGAN <br>
 image to image translation with GAN.
 
-video_lstm: https://github.com/polltooh/video_lst://github.com/polltooh/video_lstm
+video_lstm: https://github.com/polltooh/video_lst://github.com/polltooh/video_lstm <br>
 Video analysis with lstm network. Still in development
 
