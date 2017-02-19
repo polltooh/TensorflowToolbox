@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import tensorflow as tf
 
 CV_VERSION = cv2.__version__.split(".")[0]
 
@@ -54,5 +55,24 @@ def get_bbox(image, threshold_v):
     cnt = contours[0]
     bbox = cv2.boundingRect(cnt)
     return bbox 
+
+def merge_image(dim, arg_list):
+    """
+    Args:
+        dim: dimention need to be concated
+        arg_list: list of 4D tensor
+    Return:
+        merged tensor
+    """
+
+    def to_color(image_gray):
+        image_color = tf.tile(image_gray, [1,1,1,3])
+        return image_color
+    
+    for i, arg in enumerate(arg_list):
+        if arg.get_shape().as_list()[3] == 1:
+            arg_list[i] = to_color(arg) 
+
+    return tf.concat(dim, arg_list, name = "concat_image")
 
 
