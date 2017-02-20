@@ -69,13 +69,13 @@ def merge_image(dim, arg_list):
         image_color = tf.tile(image_gray, [1,1,1,3])
         return image_color
 
-    def norm_image(image):
+    def tf_norm_image(image):
         image = (image - tf.reduce_min(image)) / \
                     (tf.reduce_max(image) - tf.reduce_min(image))
         return image
 
     for i, arg in enumerate(arg_list_copy):
-        arg_list_copy[i] = norm_image(arg)
+        arg_list_copy[i] = tf_norm_image(arg)
         if arg.get_shape().as_list()[3] == 1:
             arg_list_copy[i] = to_color(arg) 
 

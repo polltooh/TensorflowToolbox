@@ -205,6 +205,12 @@ def image_l2_loss(infer, label, layer_name):
                         [1,2,3]), name = 'l2_loss')
     return l2_loss 
 
+def image_l1_loss(infer, label, layer_name):
+    with tf.variable_scope(layer_name):
+        l1_loss = tf.reduce_mean(tf.reduce_sum(tf.abs(infer - label),
+                        [1,2,3]), name = "l1_loss")
+    return l1_loss 
+
 def huber_loss(infer, label, epsilon, layer_name):
     """
     Args:
