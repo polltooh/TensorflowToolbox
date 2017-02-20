@@ -71,7 +71,9 @@ def merge_image(dim, arg_list):
 
     def tf_norm_image(image):
         image = (image - tf.reduce_min(image)) / \
-                    (tf.reduce_max(image) - tf.reduce_min(image))
+                    (tf.reduce_max(image) - tf.reduce_min(image)) * \
+                    255
+        image = tf.cast(image, tf.uint8)
         return image
 
     for i, arg in enumerate(arg_list_copy):
