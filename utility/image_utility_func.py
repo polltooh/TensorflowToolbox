@@ -71,15 +71,13 @@ def merge_image(dim, arg_list):
 
     def tf_norm_image(image):
         image = (image - tf.reduce_min(image)) / \
-                    (tf.reduce_max(image) - tf.reduce_min(image)) * \
-                    255
-        image = tf.cast(image, tf.uint8)
+                    (tf.reduce_max(image) - tf.reduce_min(image))
         return image
 
     for i, arg in enumerate(arg_list_copy):
         arg_list_copy[i] = tf_norm_image(arg)
         if arg.get_shape().as_list()[3] == 1:
-            arg_list_copy[i] = to_color(arg) 
+            arg_list_copy[i] = to_color(arg_list_copy[i]) 
 
     return tf.concat(dim, arg_list_copy, name = "concat_image")
 
