@@ -64,15 +64,21 @@ def merge_image(dim, arg_list):
     Return:
         merged tensor
     """
-
+    arg_list_copy = [tf.identity(arg) for arg in arg_list]
     def to_color(image_gray):
         image_color = tf.tile(image_gray, [1,1,1,3])
         return image_color
-    
-    for i, arg in enumerate(arg_list):
-        if arg.get_shape().as_list()[3] == 1:
-            arg_list[i] = to_color(arg) 
 
-    return tf.concat(dim, arg_list, name = "concat_image")
+    def norm_image(image):
+        image = (image - tf.reduce_min(image)) / \
+                    (tf.reduce_max(image) - tf.reduce_min(image))
+        return image
+
+    for i, arg in enumerate(arg_list_copy):
+        arg_list_copy[i] = norm_image(arg)
+        if arg.get_shape().as_list()[3] == 1:
+            arg_list_copy[i] = to_color(arg) 
+
+    return tf.concat(dim, arg_list_copy, name = "concat_image")
 
 
