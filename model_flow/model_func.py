@@ -211,10 +211,10 @@ def image_l1_loss(infer, label, layer_name):
                         [1,2,3]), name = "l1_loss")
     return l1_loss 
 
-def image_diff(infer, label, layer_name):
+def count_diff(infer, label, layer_name):
     with tf.variable_scope(layer_name):
-        img_diff = tf.reduce_mean(tf.reduce_sum((infer - label),
-                        [1,2,3]), name = "l1_loss")
+        img_diff = tf.reduce_mean(tf.abs(tf.reduce_sum((infer - label),
+                        [1,2,3])), name = "count_diff")
     return img_diff 
 
 def huber_loss(infer, label, epsilon, layer_name):
