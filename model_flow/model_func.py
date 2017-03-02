@@ -191,6 +191,22 @@ def l2_loss(infer, label, loss_type, layer_name):
 
     return loss
 
+def l1_loss(infer, label, loss_type, layer_name):
+    """
+    Args:
+        loss_type: 'SUM', 'MEAN'
+            'SUM' uses reduce_sum
+            'MEAN' uses reduce_mean
+    """
+    assert(loss_type == 'SUM' or loss_type == 'MEAN')
+    with tf.variable_scope(layer_name):
+        if loss_type == 'SUM':
+            loss = tf.reduce_sum(tf.abs(infer - label))
+        else:
+            loss = tf.reduce_mean(tf.abs(infer - label))
+
+    return loss
+
 def image_l2_loss(infer, label, layer_name):
     """
     Args:
