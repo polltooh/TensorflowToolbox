@@ -50,6 +50,8 @@ def file_queue_to_batch_data(filename_queue, data_classes, is_train, batch_size,
 
     if arg_dict is not None:
         data_arg_obj = DataArg()
+        if not is_train:
+            arg_to_test_arg(arg_dict)
         tensor_list = data_arg_obj(tensor_list, arg_dict)
 
     tensor_list.append(next_line)
@@ -65,4 +67,20 @@ def file_queue_to_batch_data(filename_queue, data_classes, is_train, batch_size,
                             tensor_list, batch_size=batch_size, num_threads = 2)
 
     return batch_tensor_list
+
+
+def arg_to_test_arg(arg_dict):
+    def arg_to_test_arg_single(single_arg_dict):
+        new_dict = dict()
+        if 'rcrop_size' in single_arg_dict:
+            new_dict['ccrop_size'] = single_arg_dict['rcrop_size']
+        return new_dict
+
+    for i, single_arg_dict in enumerate(arg_dict):
+        arg_dict[i] = arg_to_test_arg_single(single_arg_dict)
+
+
+
+     
+
 
