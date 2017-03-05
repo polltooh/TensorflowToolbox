@@ -36,15 +36,17 @@ class ResultObj(object):
     def vectorize_nparray(self, double_np_array):
         """
         Args:
-            double_np_array: list of np array
+            double_np_array: list of np array in the 
+            case of lstm
 
         Return:
             concatenated np array
         """
-        new_array = []
-        for np_array in double_np_array:
-            new_array = np.concatenate((new_array, np_array))
-        return new_array
+        np_array = np.array(double_np_array)
+        np_array = np.transpose(np_array)
+        np_array = np.reshape(np_array, (-1))
+
+        return np_array
 
     def vectorize_list(self, double_list):
         new_list = list()
