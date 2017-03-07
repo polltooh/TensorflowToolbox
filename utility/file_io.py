@@ -84,3 +84,18 @@ def check_exist(file_name):
             if not is_exist:
                 raise FileNotFoundError("In %s, row: %d, "
                 "%s does not exist" % (file_name, i, ff))
+
+def save_string(input_string, file_name):
+    if os.path.exists(file_name):
+        mode = "a"
+    else:
+        mode = "w"
+    if not input_string.endswith("\n"):
+        input_string += "\n"
+
+    with open(file_name, mode) as f:
+        f.write(input_string)
+
+
+
+
