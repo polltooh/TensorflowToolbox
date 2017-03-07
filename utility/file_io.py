@@ -31,6 +31,9 @@ def read_file(file_name):
         s = f.read();
         s = delete_last_empty_line(s)
         s_l = s.split("\n")
+        for i, l in enumerate(s_l):
+            if l.endswith("\r"):
+                s_l[i] = s_l[i][:-1]
     return s_l
 
 def save_file(string_list, file_name, shuffle_data = False):
