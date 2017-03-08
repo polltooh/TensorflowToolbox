@@ -83,6 +83,14 @@ class DataArg(object):
                     arg_dict["rsat_lower_upper"][1],
                     seed = seed)
 
+        if "ccrop_size" in arg_dict:
+            i_height, i_width, i_cha = data.get_shape().as_list()
+            ccrop_size = arg_dict["ccrop_size"]
+            offset_height = int((i_height - ccrop_size[0])/2)
+            offset_width = int((i_width - ccrop_size[1])/2)
+            data = tf.image.crop_to_bounding_box(data, 
+                    offset_height, offset_width, ccrop_size[0], ccrop_size[1])
+
         if not is_list:
             if "rflip_updown" in arg_dict and arg_dict["rflip_updown"]:
                 data = tf.image.random_flip_up_down(data, seed = seed)
@@ -93,6 +101,7 @@ class DataArg(object):
             if "rcrop_size" in arg_dict:
                 rcrop_size = arg_dict["rcrop_size"]
                 data = tf.random_crop(data, rcrop_size, seed = seed)
+
 
         return data
 
@@ -119,26 +128,20 @@ class DataArg(object):
             offset_height_max = i_height - rcrop_size[0]
             offset_width_max = i_width - rcrop_size[1]
 
-            r_weight = tf.random_uniform([], 
-                        minval = 0, maxval = offset_height_max, 
-                        dtype=tf.int32) 
+            if offset_height_max == 0 and offset_width_max == 0:
+                pass
+            else:
+                r_weight = tf.random_uniform([], 
+                            minval = 0, maxval = offset_height_max, 
+                            dtype=tf.int32) 
 
-            r_width = tf.random_uniform([], 
-                        minval = 0, maxval = offset_width_max, 
-                        dtype=tf.int32)
+                r_width = tf.random_uniform([], 
+                            minval = 0, maxval = offset_width_max, 
+                            dtype=tf.int32)
 
-            for i in range(len(data)):
-                data[i] = tf.image.crop_to_bounding_box(data[i], 
-                        r_weight, r_width, rcrop_size[0], rcrop_size[1])
-        
-        if "ccrop_size" in arg_dict:
-            i_height, i_width, i_cha = data[0].get_shape().as_list()
-            ccrop_size = arg_dict["ccrop_size"]
-            offset_height = int((i_height - ccrop_size[0])/2)
-            offset_width = int((i_width - ccrop_size[1])/2)
-            for i in range(len(data)):
-                data[i] = tf.image.crop_to_bounding_box(data[i], 
-                        offset_height, offset_width, ccrop_size[0], ccrop_size[1])
+                for i in range(len(data)):
+                    data[i] = tf.image.crop_to_bounding_box(data[i], 
+                            r_weight, r_width, rcrop_size[0], rcrop_size[1])
 
         return data
 
