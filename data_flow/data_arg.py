@@ -32,7 +32,7 @@ class DataArg(object):
         else:
             for i in range(len(data)):
                 data[i] = self.arg_single(data[i], arg_dict[i], seed, True)
-            data = self.arg_list(data, arg_dict[0], seed)
+            data = self.arg_list(data, arg_dict, seed)
 
         return data
 
@@ -107,43 +107,91 @@ class DataArg(object):
 
     def arg_list(self, data, arg_dict, seed):
         assert(isinstance(data, list))
+        assert(len(data) == len(arg_dict))
 
-        if "rflip_updown" in arg_dict and arg_dict["rflip_updown"]:
-            rflip_ud_op = tf.random_uniform([], minval = 0, 
-                        maxval = 2, dtype = tf.int32, seed = seed)
-            mirror = tf.less(tf.pack([rflip_ud_op, 2, 2]), 1)
-            for i in range(len(data)):
+        """for up down flip """
+        rflip_ud_op = tf.random_uniform([], minval = 0, 
+                    maxval = 2, dtype = tf.int32, seed = seed)
+        mirror = tf.less(tf.pack([rflip_ud_op, 2, 2]), 1)
+        for i in range(len(data)):
+            if "rflip_updown" in arg_dict[i] and arg_dict[i]["rflip_updown"]:
                 data[i] = tf.reverse(data[i], mirror)
 
-        if "rflip_leftright" in arg_dict and arg_dict["rflip_leftright"]:
-            rflip_lr_op = tf.random_uniform([], minval = 0, 
-                        maxval = 2, dtype = tf.int32, seed = seed)
-            mirror = tf.less(tf.pack([2, rflip_lr_op, 2]), 1)
-            for i in range(len(data)):
+
+        """for left right flip """
+        rflip_lr_op = tf.random_uniform([], minval = 0, 
+                    maxval = 2, dtype = tf.int32, seed = seed)
+        mirror = tf.less(tf.pack([2, rflip_lr_op, 2]), 1)
+        for i in range(len(data)):
+            if "rflip_leftright" in arg_dict[i] and arg_dict[i]["rflip_leftright"]:
                 data[i] = tf.reverse(data[i], mirror)
 
-        if "rcrop_size" in arg_dict:
-            i_height, i_width, i_cha = data[0].get_shape().as_list()
-            rcrop_size = arg_dict["rcrop_size"]
-            offset_height_max = i_height - rcrop_size[0]
-            offset_width_max = i_width - rcrop_size[1]
+        """ for random crop """
+        activate_rcrop = False
+        for i in range(len(data)):
+            if "rcrop_size" in arg_dict[i]:
+                if not activate_rcrop:
+                    activate_rcrop = True
+                    i_height, i_width, i_cha = data[i].get_shape().as_list()
+                    rcrop_size = arg_dict[i]["rcrop_size"]
+                    offset_height_max = i_height - rcrop_size[0]
+                    offset_width_max = i_width - rcrop_size[1]
 
-            if offset_height_max == 0 and offset_width_max == 0:
-                pass
-            else:
-                r_weight = tf.random_uniform([], 
-                            minval = 0, maxval = offset_height_max, 
-                            dtype=tf.int32) 
+                    if offset_height_max == 0 and offset_width_max == 0:
+                        pass
+                    else:
+                        r_weight = tf.random_uniform([], 
+                                    minval = 0, maxval = offset_height_max, 
+                                    dtype=tf.int32) 
 
-                r_width = tf.random_uniform([], 
-                            minval = 0, maxval = offset_width_max, 
-                            dtype=tf.int32)
+                        r_width = tf.random_uniform([], 
+                                    minval = 0, maxval = offset_width_max, 
+                                    dtype=tf.int32) 
 
-                for i in range(len(data)):
+                if offset_height_max == 0 and offset_width_max == 0:
+                    pass
+                else:
                     data[i] = tf.image.crop_to_bounding_box(data[i], 
                             r_weight, r_width, rcrop_size[0], rcrop_size[1])
 
         return data
+
+        #if "rflip_updown" in arg_dict and arg_dict["rflip_updown"]:
+        #    rflip_ud_op = tf.random_uniform([], minval = 0, 
+        #                maxval = 2, dtype = tf.int32, seed = seed)
+        #    mirror = tf.less(tf.pack([rflip_ud_op, 2, 2]), 1)
+        #    for i in range(len(data)):
+        #        data[i] = tf.reverse(data[i], mirror)
+
+        #if "rflip_leftright" in arg_dict and arg_dict["rflip_leftright"]:
+        #    rflip_lr_op = tf.random_uniform([], minval = 0, 
+        #                maxval = 2, dtype = tf.int32, seed = seed)
+        #    mirror = tf.less(tf.pack([2, rflip_lr_op, 2]), 1)
+        #    for i in range(len(data)):
+        #        data[i] = tf.reverse(data[i], mirror)
+
+        #if "rcrop_size" in arg_dict:
+        #    i_height, i_width, i_cha = data[0].get_shape().as_list()
+        #    rcrop_size = arg_dict["rcrop_size"]
+        #    offset_height_max = i_height - rcrop_size[0]
+        #    offset_width_max = i_width - rcrop_size[1]
+
+        #    if offset_height_max == 0 and offset_width_max == 0:
+        #        pass
+        #    else:
+        #        r_weight = tf.random_uniform([], 
+        #                    minval = 0, maxval = offset_height_max, 
+        #                    dtype=tf.int32) 
+
+        #        r_width = tf.random_uniform([], 
+        #                    minval = 0, maxval = offset_width_max, 
+        #                    dtype=tf.int32)
+
+        #        for i in range(len(data)):
+        #            data[i] = tf.image.crop_to_bounding_box(data[i], 
+        #                    r_weight, r_width, rcrop_size[0], rcrop_size[1])
+
+        #return data
 
             #if rcrop_size[2] == 1:
             #   rcrop_size[2] = 3
