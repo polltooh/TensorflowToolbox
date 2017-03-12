@@ -81,4 +81,21 @@ def merge_image(dim, arg_list):
 
     return tf.concat(dim, arg_list_copy, name = "concat_image")
 
+def batch_center_crop_frac(batch_image, frac):
+    """
+    Args:
+        batch_image: [b, h, w, c]
+        frac: 0.5, 0.75
+
+    """
+    b, h, w, c =  batch_image.get_shape().as_list()
+    start_h = int((h - frac * h)/2)
+    start_w = int((w - frac * w)/2)
+    
+    end_h = start_h + int(frac * h)
+    end_w = start_w + int(frac * w)
+
+    croped_image = batch_image[:, start_h:end_h, start_w:end_w,:]
+
+    return croped_image
 
