@@ -54,7 +54,6 @@ class ResultObj(object):
             new_list += l
         return new_list
 
-
     def save_to_file(self, sort_result = True):
         if sort_result:
             self.file_list.sort()
@@ -66,4 +65,16 @@ class ResultObj(object):
             str_list.append(sformat%(f))
 
         return str_list
+
+    def save_batch_bin(self, file_list, np_array):
+        for i, f in enumerate(file_name_list):
+            np_array[i,:].tofile(f)
+
+
+
+
+
+
+
+
 
