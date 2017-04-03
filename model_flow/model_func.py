@@ -278,13 +278,18 @@ def fully_connected_layer(x, output_num, wd, layer_name):
         wd
         layer_num
     """
-    input_shape = x.get_shape().as_list()
-    if len(input_shape) > 2:
-        x = tf.reshape(x, [input_shape[0], -1])
+    #input_shape = x.get_shape().as_list()
+    #if len(input_shape) > 2:
+    #    x = tf.reshape(x, [input_shape[0], -1])
 
-    input_shape = x.get_shape().as_list()
+    #input_shape = x.get_shape().as_list()
 
     with tf.variable_scope(layer_name):
+        input_shape = x.get_shape().as_list()
+        if len(input_shape) > 2:
+            x = tf.reshape(x, [input_shape[0], -1])
+
+        input_shape = x.get_shape().as_list()
         weights = _variable_with_weight_decay("weights", [input_shape[1], output_num], wd)
         biases = _variable_on_cpu('biases', [output_num], tf.constant_initializer(0.0))
         fc = tf.matmul(x, weights) + biases
