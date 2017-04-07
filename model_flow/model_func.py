@@ -287,7 +287,10 @@ def fully_connected_layer(x, output_num, wd, layer_name):
     with tf.variable_scope(layer_name):
         input_shape = x.get_shape().as_list()
         if len(input_shape) > 2:
-            x = tf.reshape(x, [input_shape[0], -1])
+            mul = 1
+            for m in input_shape[1:]:
+                mul *= m
+            x = tf.reshape(x, [-1, mul])
 
         input_shape = x.get_shape().as_list()
         weights = _variable_with_weight_decay("weights", [input_shape[1], output_num], wd)
