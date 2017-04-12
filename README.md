@@ -16,9 +16,9 @@ Then you should be able to import TensorflowToolbox from anywhere
 video_analysis: https://github.com/polltooh/video_analysis <br>
 Fully convolution network for density map estimation or segmentation
 
-IIGAN: https://github.com/polltooh/IIGA://github.com/polltooh/IIGAN <br>
+IIGAN: https://github.com/polltooh/IIGA <br>
 image to image translation with GAN.
 
-video_lstm: https://github.com/polltooh/video_lst://github.com/polltooh/video_lstm <br>
+video_lstm: https://github.com/polltooh/video_lstm <br>
 Video analysis with lstm network. 
 
