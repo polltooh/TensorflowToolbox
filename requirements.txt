@@ -1,0 +1,2 @@
+xmltodict>=0.10.2
+opencv-python

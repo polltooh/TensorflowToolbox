@@ -1,17 +1,32 @@
 # TensorflowToolbox
 Some useful functions for using tensorflow
 
-#### Install Instruction:
-There is no requirement for installing. Just please make sure the 
-directory is in the pathon search path.
+### Install Instruction:
 
-cd /path/to/store/ <br>
-git clone https://github.com/polltooh/TensorflowToolbox.git <br>
-export PYTHONPATH=$PYTHONPATH:/path/to/store/<br>
+#### Install this Toolbox
+Then please make sure the directory is in the pathon search path.
+
+~~~
+cd /path/to/store/
+git clone https://github.com/polltooh/TensorflowToolbox.git
+export PYTHONPATH=$PYTHONPATH:/path/to/store/
+~~~
 
 Then you should be able to import TensorflowToolbox from anywhere
 
-#### Please see my other githubs for usage example
+#### Install tensorflow, current only support version 0.12 
+~~~
+export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl
+sudo pip install --upgrade $TF_BINARY_URL
+~~~
+
+#### Install rest of the python package
+~~~
+pip install -r requirements.txt
+~~~
+
+
+### Please see my other githubs for usage example
 
 video_analysis: https://github.com/polltooh/video_analysis <br>
 Fully convolution network for density map estimation or segmentation
