@@ -22,7 +22,7 @@ sudo pip install --upgrade $TF_BINARY_URL
 
 #### Install rest of the python package
 ~~~
-pip install -r requirements.txt
+sudo pip install -r requirements.txt
 ~~~
 
 
