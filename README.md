@@ -4,12 +4,12 @@ Some useful functions for using tensorflow
 ### Install Instruction:
 
 #### Install this Toolbox
-Then please make sure the directory is in the pathon search path.
-
+Then please make sure the directory is in the pathon search path.<br>
+Replace the </path/to/store> with the dir you want to store
 ~~~
-cd /path/to/store/
+cd </path/to/store/>
 git clone https://github.com/polltooh/TensorflowToolbox.git
-export PYTHONPATH=$PYTHONPATH:/path/to/store/
+export PYTHONPATH=$PYTHONPATH:</path/to/store/>
 ~~~
 
 Then you should be able to import TensorflowToolbox from anywhere
