@@ -4,7 +4,7 @@ Some useful functions for using tensorflow
 ### Install Instruction:
 
 #### Install this Toolbox
-Then please make sure the directory is in the pathon search path.<br>
+Then please make sure the directory is in the python search path.<br>
 Replace the </path/to/store> with the dir you want to store
 ~~~
 cd </path/to/store/>
