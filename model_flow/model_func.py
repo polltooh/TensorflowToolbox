@@ -207,6 +207,19 @@ def l1_loss(infer, label, loss_type, layer_name):
 
     return loss
 
+def x_entropy_loss(infer, label, layer_name):
+    """
+    Args:
+        infer:
+        label:
+        layer_name:
+    """
+    with tf.variable_scope(layer_name):
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+                            logits = infer, labels = label))
+    return loss
+
+
 def image_l2_loss(infer, label, layer_name):
     """
     Args:
