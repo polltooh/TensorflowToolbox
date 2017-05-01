@@ -422,3 +422,16 @@ def atrous_convolution_layer(x, kernel_shape, rate, padding, wd, layer_name):
         atrous_conv = tf.nn.atrous_conv2d(x, weights, rate, padding)
     return atrous_conv
 
+def one_hot_accuracy(infer, label, layer_name):
+    """
+    Args:
+        infer: one hot representation
+        label: one hot representation
+    """
+    with tf.variable_scope(layer_name):
+        infer = tf.arg_max(infer, 1)
+        label = tf.arg_max(label, 1)
+        accuracy = tf.reduce_mean(tf.cast(tf.equal(label, infer), tf.float32))
+
+    return accuracy
+    
