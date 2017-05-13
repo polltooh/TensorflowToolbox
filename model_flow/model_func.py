@@ -38,7 +38,7 @@ def _variable_with_weight_decay(name, shape, wd = 0.0):
     # print("change var")
     # var = tf.Variable(tf.truncated_normal(shape, mean= 0.0, stddev = 1.0), name = name)
     if wd != 0.0:
-        weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+        weight_decay = tf.multiply(tf.nn.l2_loss(var), wd, name='weight_loss')
         tf.add_to_collection('losses', weight_decay)
     return var
 
@@ -53,7 +53,7 @@ def add_leaky_relu(hl_tensor, leaky_param, layer_name = None):
         layer_name = hl_tensor.op.name + "_lrelu"
 
     with tf.variable_scope(layer_name):
-        leaky_relu = tf.maximum(hl_tensor, tf.mul(leaky_param, hl_tensor))
+        leaky_relu = tf.maximum(hl_tensor, tf.multiply(leaky_param, hl_tensor))
     return leaky_relu
 
 def _deconv2d(x, w, b, output_shape, strides, padding):
@@ -65,7 +65,7 @@ def _add_leaky_relu(hl_tensor, leaky_param):
         Args:
             leaky_params should be from 0.01 to 0.1
     """
-    return tf.maximum(hl_tensor, tf.mul(leaky_param, hl_tensor))
+    return tf.maximum(hl_tensor, tf.multiply(leaky_param, hl_tensor))
 
 def _max_pool(x, ksize, strides):
     """ 2d pool layer"""
@@ -172,7 +172,7 @@ def triplet_loss(infer, labels, radius = 2.0):
     return loss
 
 def l1_reg(input_tensor, weights):
-    l1_reg_loss = tf.mul(tf.reduce_sum(tf.abs(input_tensor)), weights, name = "l1_reg_loss")
+    l1_reg_loss = tf.multiply(tf.reduce_sum(tf.abs(input_tensor)), weights, name = "l1_reg_loss")
     tf.add_to_collection('losses', l1_reg_loss)
 
 def l2_loss(infer, label, loss_type, layer_name):
