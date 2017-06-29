@@ -3,6 +3,7 @@ import json
 
 import file_io
 
+
 class FileLoader(metaclass=abc.ABCMeta):
     def __init__(self):
         self.curr_num = 0
@@ -80,10 +81,3 @@ class JsonFileLoader(FileLoader):
             self.curr_num = end_index
 
         return return_list
-
-
-
-#json_file_name = '/Users/Geoff/Documents/my_git/data/TUDarmstadt/Annotations/annotation.json'
-#json_loader = JsonFileLoader()
-#json_loader.read_file(json_file_name)
-#print(json_loader.get_next(1))

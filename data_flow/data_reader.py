@@ -46,7 +46,7 @@ def file_queue_to_batch_data(filename_queue, data_classes, is_train, batch_size,
                     tensor_list.append(data_classes[i].decode_class.decode(data_list[i]))
             else:
                     tensor_list.append(data_list[i])
-                    
+
 
     if arg_dict is not None:
         data_arg_obj = DataArg()
