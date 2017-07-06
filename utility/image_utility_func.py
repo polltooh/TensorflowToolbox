@@ -79,7 +79,24 @@ def merge_image(dim, arg_list):
         if arg.get_shape().as_list()[3] == 1:
             arg_list_copy[i] = to_color(arg_list_copy[i]) 
 
-    return tf.concat(dim, arg_list_copy, name = "concat_image")
+    return tf.concat(arg_list_copy, dim, name = "concat_image")
+
+def merge_image_np(dim, arg_list):
+    arg_list_copy = [arg for arg in arg_list]
+    def to_color(image_gray):
+        image_color = np.tile(image_gray, [1,1,1,3])
+        return image_color
+    def np_norm_image(image):
+        image = (image - np.amin(image)) / \
+                    (np.amax(image) - np.amin(image))
+        return image
+
+    for i, arg in enumerate(arg_list_copy):
+        arg_list_copy[i] = np_norm_image(arg)
+        if arg.shape[3] == 1:
+            arg_list_copy[i] = to_color(arg_list_copy[i]) 
+
+    return np.concatenate(arg_list_copy, dim)
 
 def batch_center_crop_frac(batch_image, frac):
     """
