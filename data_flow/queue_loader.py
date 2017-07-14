@@ -35,6 +35,10 @@ class QueueLoader(object):
                 shuffle = self.is_train
                 rq_params = self.params.read_queue
                 read_queue = self._init_queue(shuffle, 'read_queue', rq_params)
+                read_queue_size = read_queue.size()
+
+                tf.summary.scalar('read_queue_size', read_queue_size)
+
                 read_queue_input = self.input_layer.read_data()
 
                 enqueue_ops = read_queue.enqueue(read_queue_input)
@@ -46,6 +50,9 @@ class QueueLoader(object):
                                                 shuffle, 
                                                 'process_queue', 
                                                 pq_params)
+                process_queue_size = process_queue.size()
+
+                tf.summary.scalar('process_queue_size', process_queue_size)
 
                 read_tensor = read_queue.dequeue()
                 process_tensor = self.input_layer.process_data(read_tensor)

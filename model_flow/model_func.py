@@ -16,7 +16,7 @@ def _variable_on_cpu(name, shape, initializer, trainable = True):
             Variable Tensor
     """
     with tf.device('/cpu:0'):
-        var = tf.get_variable(name, shape, initializer=initializer, trainable = trainable)
+        var = tf.get_variable(name, shape, initializer=initializer, trainable=trainable)
     return var
 
 def _variable_with_weight_decay(name, shape, wd = 0.0):
@@ -43,16 +43,17 @@ def _variable_with_weight_decay(name, shape, wd = 0.0):
     return var
 
 def _conv2d(x, w, b, strides, padding):
-    return tf.nn.bias_add(tf.nn.conv2d(x, w,strides=strides, padding = padding), b)
+    return tf.nn.bias_add(tf.nn.conv2d(x, w, strides=strides, padding = padding), b)
 
 def _conv3d(x, w, b, strides = [1,1,1,1,1], padding = 'SAME'):
     return tf.nn.bias_add(tf.nn.conv3d(x, w,strides=strides, padding = padding), b)
 
 def add_leaky_relu(hl_tensor, leaky_param, layer_name = None):
-    if layer_name is None:
-        layer_name = hl_tensor.op.name + "_lrelu"
+    # if layer_name is None:
+    #     layer_name = hl_tensor.op.name + "_lrelu"
 
-    with tf.variable_scope(layer_name):
+    # with tf.variable_scope(layer_name):
+    with tf.variable_scope(layer_name, 'relu'):
         leaky_relu = tf.maximum(hl_tensor, tf.multiply(leaky_param, hl_tensor))
     return leaky_relu
 
@@ -266,17 +267,40 @@ def huber_loss(infer, label, epsilon, layer_name):
                     name = 'huber_loss_sum')
     return hloss
 
-def convolution_2d_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name):
+def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding, 
+                         data_format='NCHW', leaky_params=None, wd=None, 
+                         layer_name='conv2d'):
     """
     Args:
-        x
-        kernel_shape: [height, width, input_channel, output_channel]
+        inputs:
+        filters: integer
+        kernel_shape: [height, width]
         kernel_stride: [height, width]
         padding: "SAME" or "VALID"
+        data_format: 'NCHW'
+        leaky_params: None will be no relu
         wd: weight decay params
         layer_name: 
     """
     with tf.variable_scope(layer_name):
+        l2_regularizer = None
+        activation = None
+        if wd is not None:
+            l2_regularizer = tf.contrib.layers.l2_regularizer(wd)
+        if leaky_params is not None:
+            activation = keras.layers.advanced_activations.LeakyReLU(alpha=leaky_params)
+        
+        kerner_initializer = tf.contrib.layers.xavier_initializer()
+        bias_initializer = tf.zeros_initializer
+
+        if data_format = 'NCHW':
+            data_format = 'channels_first'
+        else:
+            data_format = 'channels_last'
+
+        tf.layers.conv2d(inputs, filters, kernel_size, kernel_stride, padding, data_format,
+                activation=activation, kernel_initializer 
+
         weights = _variable_with_weight_decay('weights', kernel_shape, wd)
         biases = _variable_on_cpu('biases', [kernel_shape[-1]], tf.constant_initializer(0.0))
         conv = _conv2d(x, weights, biases, [1, kernel_stride[0], kernel_stride[1],1], padding)

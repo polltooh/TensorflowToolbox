@@ -15,4 +15,3 @@ class ModelAbs(object):
     @abstractmethod
     def model_mini(self, loss):
         raise NotImplementedError
-    
