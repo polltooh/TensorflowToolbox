@@ -49,9 +49,13 @@ def var_getter(device):
 def single_grad(model, opt, input_data, is_train, scope, reuse):
     custom_getter = var_getter('/cpu:0')
     with tf.name_scope(scope), tf.variable_scope('', custom_getter=custom_getter, reuse=reuse):
-        output = model.model_infer(input_data, is_train)
+        with tf.variable_scope('network'):
+            output = model.model_infer(input_data, is_train)
         loss = model.model_loss(input_data, output)
-        grads = opt.compute_gradients(loss)
+        if is_train:
+            grads = opt.compute_gradients(loss)
+        else:
+            grads = None
     return loss, grads 
 
 def multi_grads(model, num_gpus, train_input=None, test_input=None):
@@ -91,7 +95,7 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
                                                     "%s_test"%(scope), reuse)
         else:
             with tf.device('/cpu:0'):
-                test_loss, test_grads = single_grad(model, opt, test_input, False, 
+                test_loss, _ = single_grad(model, opt, test_input, False, 
                                                     "%s_test"%(scope), reuse)
 
     return loss, grads, test_loss
@@ -105,16 +109,17 @@ def model_trainer(model, num_gpus, train_input=None, test_input=None):
         loss, grads, test_loss = multi_grads(model, num_gpus, train_input, test_input)
         if grads is not None:
             opt = model.model_optimizer()
-            global_step = tf.get_variable('global_step', [], 
-                                          initializer=tf.constant_initializer(0),
-                                          trainable=False)
+            with tf.variable_scope('trainer'):
+                global_step = tf.get_variable('global_step', [], 
+                                              initializer=tf.constant_initializer(0),
+                                              trainable=False)
 
-            apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
+                apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
 
-            variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
-            variables_averages_op = variable_averages.apply(tf.trainable_variables())
+                variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
+                variables_averages_op = variable_averages.apply(tf.trainable_variables())
 
-            train_op = tf.group(apply_gradient_op, variables_averages_op)
-            train_op = apply_gradient_op
+                train_op = tf.group(apply_gradient_op, variables_averages_op)
+                train_op = apply_gradient_op
 
     return train_op, loss, test_loss
