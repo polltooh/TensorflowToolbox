@@ -296,11 +296,6 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
             input_channel = input_shape[3]
             stride = [1, kernel_stride[0], kernel_stride[1], 1]
 
-        # conv = tf.layers.conv2d(inputs, filters, kernel_size, kernel_stride, padding, data_format,
-        #                         activation=activation, kernel_initializer=kernel_initializer,
-        #                         bias_initializer=bias_initializer, 
-        #                         kernel_regularizer=kernel_regularizer)
-
         weights = _variable_with_weight_decay('weights', 
                                               kernel_size + [input_channel, filters], 
                                               wd, kerner_initializer)
@@ -310,7 +305,6 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
 
         if leaky_params is not None:
             conv = add_leaky_relu(conv, leaky_params)
-
 
     return conv
 
