@@ -2,8 +2,6 @@ import abc
 import json
 import threading
 
-import panda as pd
-
 import file_io
 
 
@@ -50,17 +48,19 @@ class TextFileLoader(FileLoader):
         self.file_len = len(self.decoded_file)
 
     def get_next(self, batch_size):
-        end_index = self.curr_num + batch_size
-        if end_index >= self.file_len:
-            end_index = self.file_len
-            self.epoch += 1
+        with self.lock:
+            curr_num = self.curr_num
+            end_index = self.curr_num + batch_size
+            if end_index >= self.file_len:
+                end_index = self.file_len
+                self.epoch += 1
 
-        return_list = self.decoded_file[self.curr_num:end_index]
+            if end_index == self.file_len:
+                self.curr_num = 0
+            else:
+                self.curr_num = end_index
 
-        if end_index == self.file_len:
-            self.curr_num = 0
-        else:
-            self.curr_num = end_index
+        return_list = self.decoded_file[curr_num:end_index]
 
         return return_list
 
