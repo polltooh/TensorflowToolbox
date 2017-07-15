@@ -61,7 +61,6 @@ class TextFileLoader(FileLoader):
                 self.curr_num = end_index
 
         return_list = self.decoded_file[curr_num:end_index]
-
         return return_list
 
 

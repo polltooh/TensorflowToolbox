@@ -39,7 +39,7 @@ class QueueLoader(object):
 
                 tf.summary.scalar('read_queue_size', read_queue_size)
 
-                read_queue_input = self.input_layer.read_data()
+                read_queue_input = self.input_layer.read_data(rq_params['dtypes'])
 
                 enqueue_ops = read_queue.enqueue(read_queue_input)
                 enqueue_list = [enqueue_ops] * rq_params['num_threads']
@@ -55,9 +55,9 @@ class QueueLoader(object):
                 tf.summary.scalar('process_queue_size', process_queue_size)
 
                 read_tensor = read_queue.dequeue()
-                process_tensor = self.input_layer.process_data(read_tensor)
+                process_tensor = self.input_layer.process_data(read_tensor, pq_params['dtypes'])
 
-                enqueue_ops = [process_queue.enqueue(process_tensor)] 
+                enqueue_ops = process_queue.enqueue(process_tensor) 
                 enqueue_list = [enqueue_ops] * pq_params['num_threads']
                 self._run_queue(process_queue, enqueue_list, 'process_queue')
 
