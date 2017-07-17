@@ -16,7 +16,7 @@ Then you should be able to import TensorflowToolbox from anywhere
 
 #### Install tensorflow, current only support version 1.2
 ~~~
-pip install tensorflow
+pip install tensorflow-gpu
 ~~~
 
 #### Install rest of the python package
