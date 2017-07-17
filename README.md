@@ -14,7 +14,7 @@ export PYTHONPATH=$PYTHONPATH:</path/to/store/>
 
 Then you should be able to import TensorflowToolbox from anywhere
 
-#### Install tensorflow, current only support version 0.12 
+#### Install tensorflow, current only support version 1.2
 ~~~
 export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.12.1-cp27-none-linux_x86_64.whl
 sudo pip install --upgrade $TF_BINARY_URL
