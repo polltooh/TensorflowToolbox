@@ -20,48 +20,48 @@ class QueueLoader(object):
         self.batch_data = self._create_queue()
 
     def _init_queue(self, shuffle, name, queue_params):
-        read_queue = data_queue.init_file_queue(
+        queue = data_queue.init_file_queue(
                                         shuffle, 
                                         queue_params['capacity'],
                                         queue_params['dtypes'],
                                         queue_params['shapes'],
                                         name,
                                         queue_params['min_after_dequeue'])
-        return read_queue 
+        return queue 
 
     def _create_queue(self):
         with tf.device('/cpu:0'):
             with tf.variable_scope('queue_runner'):
                 shuffle = self.is_train
-                rq_params = self.params.read_queue
-                read_queue = self._init_queue(shuffle, 'read_queue', rq_params)
-                read_queue_size = read_queue.size()
+                rq_params = self.params.load_queue
+                load_queue = self._init_queue(shuffle, 'load_queue', rq_params)
+                load_queue_size = load_queue.size()
 
-                tf.summary.scalar('read_queue_size', read_queue_size)
+                tf.summary.scalar('load_queue_size', load_queue_size)
 
-                read_queue_input = self.input_layer.read_data(rq_params['dtypes'])
+                load_queue_input = self.input_layer.read_data(rq_params['dtypes'])
 
-                enqueue_ops = read_queue.enqueue(read_queue_input)
+                enqueue_ops = load_queue.enqueue(load_queue_input)
                 enqueue_list = [enqueue_ops] * rq_params['num_threads']
-                self._run_queue(read_queue, enqueue_list, 'run_read_queue')
+                self._run_queue(load_queue, enqueue_list, 'run_load_queue')
 
-                pq_params = self.params.process_queue
-                process_queue = self._init_queue(
+                pq_params = self.params.preprocess_queue
+                preprocess_queue = self._init_queue(
                                                 shuffle, 
-                                                'process_queue', 
+                                                'preprocess_queue', 
                                                 pq_params)
-                process_queue_size = process_queue.size()
+                preprocess_queue_size = preprocess_queue.size()
 
-                tf.summary.scalar('process_queue_size', process_queue_size)
+                tf.summary.scalar('preprocess_queue_size', preprocess_queue_size)
 
-                read_tensor = read_queue.dequeue()
+                read_tensor = load_queue.dequeue()
                 process_tensor = self.input_layer.process_data(read_tensor, pq_params['dtypes'])
 
-                enqueue_ops = process_queue.enqueue(process_tensor) 
+                enqueue_ops = preprocess_queue.enqueue(process_tensor) 
                 enqueue_list = [enqueue_ops] * pq_params['num_threads']
-                self._run_queue(process_queue, enqueue_list, 'process_queue')
+                self._run_queue(preprocess_queue, enqueue_list, 'preprocess_queue')
 
-                batch_data = process_queue.dequeue_many(self.params.batch_size)
+                batch_data = preprocess_queue.dequeue_many(self.params.batch_size)
 
         return batch_data
 
