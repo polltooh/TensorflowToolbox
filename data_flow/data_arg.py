@@ -112,19 +112,19 @@ class DataArg(object):
         """for up down flip """
         rflip_ud_op = tf.random_uniform([], minval = 0, 
                     maxval = 2, dtype = tf.int32, seed = seed)
-        mirror = tf.less(tf.pack([rflip_ud_op, 2, 2]), 1)
+        mirror = tf.less(rflip_ud_op, 1)
         for i in range(len(data)):
             if "rflip_updown" in arg_dict[i] and arg_dict[i]["rflip_updown"]:
-                data[i] = tf.reverse(data[i], mirror)
+                data[i] = tf.cond(mirror, lambda: tf.reverse(data[i], [0]), lambda: data[i])
 
 
         """for left right flip """
         rflip_lr_op = tf.random_uniform([], minval = 0, 
                     maxval = 2, dtype = tf.int32, seed = seed)
-        mirror = tf.less(tf.pack([2, rflip_lr_op, 2]), 1)
+        mirror = tf.where(tf.less(tf.stack([2, rflip_lr_op, 2]), 1))
         for i in range(len(data)):
             if "rflip_leftright" in arg_dict[i] and arg_dict[i]["rflip_leftright"]:
-                data[i] = tf.reverse(data[i], mirror)
+                data[i] = tf.cond(mirror, lambda: tf.reverse(data[i], [1]), lambda: data[i])
 
         """ for random crop """
         activate_rcrop = False
