@@ -45,8 +45,9 @@ class TextFileLoader(FileLoader):
 
     def read_file(self, file_name, delimit=' ', shuffle=False):
         self.file_name = file_name
+        self.shuffle = shuffle
         file_list = file_io.read_file(file_name)
-        if shuffle:
+        if self.shuffle:
             self.shuffle_data(file_list)
 
         for f in file_list:
@@ -62,7 +63,7 @@ class TextFileLoader(FileLoader):
             if end_index >= self.file_len:
                 end_index = self.file_len
                 self.epoch += 1
-                if shuffle:
+                if self.shuffle:
                     self.shuffle_data(file_list)
 
             if end_index == self.file_len:
@@ -80,9 +81,10 @@ class JsonFileLoader(FileLoader):
 
     def read_file(self, file_name, shuffle=False):
         self.file_name = file_name
+        self.shuffle = shuffle
         with open(file_name) as input_file:
             self.decoded_file = json.load(input_file)
-        if shuffle:
+        if self.shuffle:
             self.shuffle_data(decoded_file)
 
         self.file_len = len(self.decoded_file)
@@ -95,7 +97,7 @@ class JsonFileLoader(FileLoader):
             if end_index >= self.file_len:
                 end_index = self.file_len
                 self.epoch += 1
-                if shuffle:
+                if self.shuffle:
                     self.shuffle_data(decoded_file)
 
             if end_index == self.file_len:
