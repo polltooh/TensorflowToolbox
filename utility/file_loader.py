@@ -11,7 +11,7 @@ import file_io
 class FileLoader():
     __metaclass__ = abc.ABCMeta
     def __init__(self):
-        self._curr_num = 0
+        self._curr_index = 0
         self._file_len = 0
         self._file_name = ''
         self._decoded_file = list()
@@ -26,10 +26,10 @@ class FileLoader():
             random.shuffle(self._file_index_array)
 
     def _get_next_index(self):
-        next_index = self._curr_num + 1
+        next_index = self._curr_index + 1
         if next_index == self._file_len:
             self._shuffle_index()
-            self.epoch += 1
+            self._epoch += 1
             next_index = 0
         self._curr_index = next_index
         return self._file_index_array[next_index]
