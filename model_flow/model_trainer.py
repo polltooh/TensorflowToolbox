@@ -101,6 +101,10 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
     return loss, grads, test_loss
 
 def model_trainer(model, num_gpus, train_input=None, test_input=None):
+    """ Function for training the model.
+
+
+    """
     with tf.device('/cpu:0'):
         train_op = None
         loss = None
