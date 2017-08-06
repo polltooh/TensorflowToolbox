@@ -38,6 +38,34 @@ def resize_image(image, rshape):
     """
     return cv2.resize(image, rshape)
 
+def resize_keep_ratio(image, target_width, target_height):
+    """ Resize image and keep aspect ratio.
+    Args:
+        image:
+        target_width:
+        target_hegiht:
+    """
+    h, w, c = image.shape
+    target_image = np.zeros((target_height, target_width, c), image.dtype)
+    target_ratio = target_width / float(target_height)
+    image_ratio = h / float(w)
+    if target_ratio > image_ratio:
+        ratio = target_width / float(w)
+        new_w = target_width
+        new_h = int(h * ratio)
+        image = cv2.resize(image, (new_w, new_h)) 
+        h_offset = int((target_height - new_h)/2.0)
+        target_image[h_offset: new_h + h_offset, :, :] = image
+    else:
+        ratio = target_height / float(h)
+        new_w = int(w * ratio)
+        new_h = target_height
+        image = cv2.resize(image, (new_w, new_h)) 
+        w_offset = int((target_width - new_w)/2.0)
+        target_image[:, w_offset: new_w + w_offset, :] = image
+
+    return target_image
+
 def get_bbox(image, threshold_v):
     """
     Args:
