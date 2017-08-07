@@ -95,7 +95,3 @@ def save_string(input_string, file_name):
 
     with open(file_name, mode) as f:
         f.write(input_string)
-
-
-
-
