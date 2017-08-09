@@ -114,14 +114,14 @@ class DataArg(object):
 
         offset_h = tf.cast(tf.subtract(target_h, h)/2, tf.int32)
         offset_w = tf.cast(tf.subtract(target_w, w)/2, tf.int32)
-        new_data = []
-        for i in range(len(data)): 
-            new_data.append(tf.image.pad_to_bounding_box(
-                        data[i],
+        new_data = [tf.identity(d) for d in data]
+        for i in range(len(new_data)): 
+            new_data[i] = tf.image.pad_to_bounding_box(
+                        new_data[i],
                         offset_h,
                         offset_w,
                         target_h,
-                        target_w))
+                        target_w)
 
         return new_data 
 
@@ -153,7 +153,7 @@ class DataArg(object):
                                     method)
 
         if activate_multi:
-            data = tf.cond(tf.less_equal(rscale_op, 1.0),
+            data = tf.cond(tf.less_equal(tf.cast(h * rscale_op, tf.int32), org_h),
                        lambda: self.center_padding(data, org_h, org_w),
                        lambda: self.rcrop(data, [{'rcrop_size': [org_h, org_w]}] * len(data), 
                                seed))
@@ -162,12 +162,13 @@ class DataArg(object):
     def rcrop(self, data, arg_dict, seed):
         """ for random crop """
         activate_rcrop = False
-        for i in range(len(data)):
+        new_data = [tf.identity(d) for d in data]
+        for i in range(len(new_data)):
             if "rcrop_size" in arg_dict[i]:
                 if not activate_rcrop:
                     activate_rcrop = True
                     # i_height, i_width, i_cha = data[i].get_shape().as_list()
-                    data_shape = tf.shape(data[i])
+                    data_shape = tf.shape(new_data[i])
                     i_height = data_shape[0]
                     i_width = data_shape[1]
                     i_cha = data_shape[2]
@@ -189,9 +190,9 @@ class DataArg(object):
                 if offset_height_max == 0 and offset_width_max == 0:
                     pass
                 else:
-                    data[i] = tf.image.crop_to_bounding_box(data[i], 
+                    new_data[i] = tf.image.crop_to_bounding_box(new_data[i], 
                             r_weight, r_width, rcrop_size[0], rcrop_size[1])
-        return data
+        return new_data
         
     def rflip_lr(self, data, arg_dict, seed):
         """for left right flip """
