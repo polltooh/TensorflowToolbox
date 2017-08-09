@@ -236,11 +236,12 @@ class DataArg(object):
         #     if "rflip_leftright" in arg_dict[i] and arg_dict[i]["rflip_leftright"]:
         #         data[i] = tf.cond(mirror, lambda: tf.reverse(data[i], [1]), lambda: data[i])
 
+        """ for multi scale """
+        data = self.rmultiscale(data, arg_dict, seed)
+
         """ for random crop """
         data = self.rcrop(data, arg_dict, seed)
 
-        """ for multi scale """
-        data = self.rmultiscale(data, arg_dict, seed)
         # activate_rcrop = False
         # for i in range(len(data)):
         #     if "rcrop_size" in arg_dict[i]:
