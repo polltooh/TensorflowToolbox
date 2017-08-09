@@ -55,13 +55,17 @@ def resize_keep_ratio(image, target_width, target_height, interpolation):
         new_w = target_width
         new_h = int(h * ratio)
         image = cv2.resize(image, (new_w, new_h), interpolation=interpolation)
+        if len(image.shape) < 3:
+            image = np.expand_dims(image, 2)
         h_offset = int((target_height - new_h)/2.0)
         target_image[h_offset: new_h + h_offset, :, :] = image
     else:
         ratio = target_height / float(h)
         new_w = int(w * ratio)
         new_h = target_height
-        image = cv2.resize(image, (new_w, new_h)) 
+        image = cv2.resize(image, (new_w, new_h), interpolation=interpolation) 
+        if len(image.shape) < 3:
+            image = np.expand_dims(image, 2)
         w_offset = int((target_width - new_w)/2.0)
         target_image[:, w_offset: new_w + w_offset, :] = image
 
@@ -144,4 +148,3 @@ def batch_center_crop_frac(batch_image, frac):
     croped_image = batch_image[:, start_h:end_h, start_w:end_w,:]
 
     return croped_image
-
