@@ -114,16 +114,16 @@ class DataArg(object):
 
         offset_h = tf.cast(tf.subtract(target_h, h)/2, tf.int32)
         offset_w = tf.cast(tf.subtract(target_w, w)/2, tf.int32)
-
+        new_data = []
         for i in range(len(data)): 
-            data[i] = tf.image.pad_to_bounding_box(
+            new_data.append(tf.image.pad_to_bounding_box(
                         data[i],
                         offset_h,
                         offset_w,
                         target_h,
-                        target_w)
+                        target_w))
 
-        return data 
+        return new_data 
 
     def rmultiscale(self, data, arg_dict, seed):
         org_h, org_w, org_c = data[0].get_shape().as_list()
@@ -148,12 +148,12 @@ class DataArg(object):
                 else:
                     method = tf.image.ResizeMethod.BILINEAR
                 data[i] = tf.image.resize_images(
-                                    data[i], 
+                                    data[i],
                                     tf.cast([h, w] * rscale_op, tf.int32), 
                                     method)
 
         if activate_multi:
-            data = tf.cond(tf.less(rscale_op, 1), 
+            data = tf.cond(tf.less_equal(rscale_op, 1.0),
                        lambda: self.center_padding(data, org_h, org_w),
                        lambda: self.rcrop(data, [{'rcrop_size': [org_h, org_w]}] * len(data), 
                                seed))
@@ -166,7 +166,11 @@ class DataArg(object):
             if "rcrop_size" in arg_dict[i]:
                 if not activate_rcrop:
                     activate_rcrop = True
-                    i_height, i_width, i_cha = data[i].get_shape().as_list()
+                    # i_height, i_width, i_cha = data[i].get_shape().as_list()
+                    data_shape = tf.shape(data[i])
+                    i_height = data_shape[0]
+                    i_width = data_shape[1]
+                    i_cha = data_shape[2]
                     rcrop_size = arg_dict[i]["rcrop_size"]
                     offset_height_max = i_height - rcrop_size[0]
                     offset_width_max = i_width - rcrop_size[1]
@@ -174,7 +178,7 @@ class DataArg(object):
                     if offset_height_max == 0 and offset_width_max == 0:
                         pass
                     else:
-                        r_weight = tf.random_uniform([], 
+                        r_weight = tf.random_uniform([],
                                     minval = 0, maxval = offset_height_max, 
                                     dtype=tf.int32) 
 
