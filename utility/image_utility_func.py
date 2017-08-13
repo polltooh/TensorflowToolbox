@@ -38,14 +38,24 @@ def resize_image(image, rshape):
     """
     return cv2.resize(image, rshape)
 
-def resize_keep_ratio(image, target_width, target_height, interpolation):
+def resize_keep_ratio(image, target_width, target_height, method):
     """ Resize image and keep aspect ratio.
     Args:
         image:
         target_width:
         target_hegiht:
-        interpolation: interpolation in cv2
+        method: "NN" or "BILINEAR"
     """
+    if method == "NN":
+        interpolation = cv2.INTER_NEAREST
+    elif method == "BILINEAR":
+        interpolation = cv2.INTER_LINEAR
+    else:
+        raise NotImplementedError
+
+    if len(image.shape) < 3:
+        raise ValueError("the input shape should be 3 dimentions")
+
     h, w, c = image.shape
     target_image = np.zeros((target_height, target_width, c), image.dtype)
     target_ratio = target_width / float(target_height)
