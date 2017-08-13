@@ -61,7 +61,14 @@ class QueueLoader(object):
                 enqueue_list = [enqueue_ops] * pq_params['num_threads']
                 self._run_queue(preprocess_queue, enqueue_list, 'preprocess_queue')
 
-                batch_data = preprocess_queue.dequeue_many(self.params.batch_size)
+                if self.params.num_gpus == 0:
+                    batch_data = preprocess_queue.dequeue_many(self.params.batch_size)
+                else:
+                    batch_data = list()
+                    for _ in range(self.params.num_gpus):
+                        single_batch_data = preprocess_queue.dequeue_many(
+                                                        self.params.batch_size)
+                        batch_data.append(single_batch_data)
 
         return batch_data
 

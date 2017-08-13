@@ -46,12 +46,12 @@ def var_getter(device):
         with tf.device(device):
             return getter(name, *args, **kwargs)
 
-def single_grad(model, opt, input_data, is_train, scope, reuse):
+def single_grad(model, opt, batch_data, is_train, scope, reuse):
     custom_getter = var_getter('/cpu:0')
     with tf.name_scope(scope), tf.variable_scope('', custom_getter=custom_getter, reuse=reuse):
         with tf.variable_scope('network'):
-            output = model.model_infer(input_data, is_train)
-        loss = model.model_loss(input_data, output)
+            output = model.model_infer(batch_data, is_train)
+        loss = model.model_loss(batch_data, output)
         if is_train:
             grads = opt.compute_gradients(loss)
         else:
@@ -74,7 +74,7 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
         if num_gpus >= 1:
             for i in xrange(num_gpus):
                 with tf.device('/gpu:%d' % i):
-                    loss, grads = single_grad(model, opt, train_input, is_train, 
+                    loss, grads = single_grad(model, opt, train_input[i], is_train, 
                                         "%s_train_%i"%(scope,i), reuse=(i>0))
                     loss_list.append(loss)
                     grads_list.append(grads)
@@ -91,7 +91,7 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
         reuse = is_train
         if num_gpus >= 1:
             with tf.device('/gpu:%d' % 0):
-                test_loss, test_grads = single_grad(model, opt, test_input, False, 
+                test_loss, test_grads = single_grad(model, opt, test_input[i], False, 
                                                     "%s_test"%(scope), reuse)
         else:
             with tf.device('/cpu:0'):
