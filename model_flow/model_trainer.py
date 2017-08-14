@@ -51,7 +51,10 @@ def single_grad(model, opt, batch_data, is_train, scope, reuse):
     with tf.name_scope(scope), tf.variable_scope('', custom_getter=custom_getter, reuse=reuse):
         with tf.variable_scope('network'):
             output = model.model_infer(batch_data, is_train)
-        _ = model.model_loss(batch_data, output)
+        model_loss = model.model_loss(batch_data, output)
+        tf.add_to_collection("losses", model_loss)
+
+        # The losses will also store weight decay loss.
         loss = tf.add_n(tf.get_collection("losses", scope), name="total_loss")
 
         if is_train:
