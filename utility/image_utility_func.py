@@ -59,8 +59,8 @@ def resize_keep_ratio(image, target_width, target_height, method):
     h, w, c = image.shape
     target_image = np.zeros((target_height, target_width, c), image.dtype)
     target_ratio = target_width / float(target_height)
-    image_ratio = h / float(w)
-    if target_ratio > image_ratio:
+    image_ratio = w / float(h)
+    if target_ratio < image_ratio:
         ratio = target_width / float(w)
         new_w = target_width
         new_h = int(h * ratio)
