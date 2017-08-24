@@ -270,7 +270,7 @@ def huber_loss(infer, label, epsilon, layer_name):
     return hloss
 
 def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding, 
-                         data_format='NCHW', leaky_params=None, wd=None, 
+                         data_format='NCHW', leaky_params=None, wd=0.0, 
                          layer_name='conv2d'):
     """
     Args:
@@ -308,7 +308,7 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
 
     return conv
 
-def fully_connected_layer(x, output_num, wd, layer_name):
+def fully_connected_layer(x, filters, leaky_params=None, wd=0.0, layer_name="fc"):
     """
     Args:
         x
@@ -324,16 +324,27 @@ def fully_connected_layer(x, output_num, wd, layer_name):
 
     with tf.variable_scope(layer_name):
         input_shape = x.get_shape().as_list()
+        input_channel = input_shape[1]
         if len(input_shape) > 2:
             mul = 1
             for m in input_shape[1:]:
                 mul *= m
             x = tf.reshape(x, [-1, mul])
+            input_channel = mul
 
-        input_shape = x.get_shape().as_list()
-        weights = _variable_with_weight_decay("weights", [input_shape[1], output_num], wd)
-        biases = _variable_on_cpu('biases', [output_num], tf.constant_initializer(0.0))
+        kerner_initializer = tf.contrib.layers.xavier_initializer()
+        bias_initializer = tf.zeros_initializer
+
+        weights = _variable_with_weight_decay('weights', 
+                                              [input_channel, filters], 
+                                              wd, kerner_initializer)
+
+        biases = _variable_on_cpu('biases', filters, bias_initializer)
         fc = tf.matmul(x, weights) + biases
+
+        if leaky_params is not None:
+            fc = add_leaky_relu(fc, leaky_params)
+
     return fc
 
 def deconvolution_2d_layer(x, kernel_shape, kernel_stride, output_shape, padding, wd, layer_name):

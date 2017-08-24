@@ -86,7 +86,8 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
 
         else:
             with tf.device('/cpu'):
-                loss, grads = single_grad(model, opt, train_input, is_train, scope, reuse=False)
+                loss, grads = single_grad(model, opt, train_input, is_train, 
+                                          "%s_train"%(scope), reuse=False)
                 grads_list.append(grads)
                 loss_list.append(loss)
 
@@ -98,7 +99,7 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
             for i in xrange(num_gpus):
                 with tf.device('/gpu:%d' % 0):
                     test_loss, test_grads = single_grad(model, opt, test_input[i], False, 
-                                                        "%s_test"%(scope), reuse)
+                                                        "%s_test_%i"%(scope, i), reuse)
         else:
             with tf.device('/cpu:0'):
                 test_loss, _ = single_grad(model, opt, test_input, False, 
