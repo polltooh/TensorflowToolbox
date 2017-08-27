@@ -96,10 +96,13 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
     if test_input is not None:
         reuse = is_train
         if num_gpus >= 1:
+            test_loss_list = list()
             for i in xrange(num_gpus):
                 with tf.device('/gpu:%d' % 0):
                     test_loss, test_grads = single_grad(model, opt, test_input[i], False, 
                                                         "%s_test_%i"%(scope, i), reuse)
+                    test_loss_list.append(test_loss)
+            test_loss = tf.reduce_mean(test_loss_list)
         else:
             with tf.device('/cpu:0'):
                 test_loss, _ = single_grad(model, opt, test_input, False, 
