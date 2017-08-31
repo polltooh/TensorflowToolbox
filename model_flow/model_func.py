@@ -88,70 +88,6 @@ def _avg_pool3(x, ksize, strides, name):
             padding = 'VALID', name = name)
     return pool
 
-def _batch_norm(inputs, decay = 0.999, center = True, scale = False, epsilon = 0.001, 
-				moving_vars = 'moving_vars', activation = None, is_training = None, 
-				trainable = True, restore = True, scope = None, reuse = None):
-    """ Copied from slim/ops.py 
-        Adds a Batch Normalization layer. 
-        Args:
-    
-            inputs: a tensor of size [batch_size, height, width, channels]
-                    or [batch_size, channels].
-            decay: decay for the moving average.
-            center: If True, subtract beta. If False, beta is not created and ignored.
-            scale: If True, multiply by gamma. If False, gamma is
-                    not used. When the next layer is linear (also e.g. ReLU), this can be
-                    disabled since the scaling can be done by the next layer.
-            epsilon: small float added to variance to avoid dividing by zero.
-            moving_vars: collection to store the moving_mean and moving_variance.
-            activation: activation function.
-            is_training: a placeholder whether or not the model is in training mode.
-            trainable: whether or not the variables should be trainable or not.
-            restore: whether or not the variables should be marked for restore.
-            scope: Optional scope for variable_op_scope.
-            reuse: whether or not the layer and its variables should be reused. To be
-                            able to reuse the layer scope must be given.
-
-        Returns:
-            a tensor representing the output of the operation.
-    """
-    inputs_shape = inputs.get_shape()
-    with tf.variable_op_scope([inputs], scope, 'BatchNorm', reuse = reuse):
-        axis = list(range(len(inputs_shape) - 1))
-        params_shape = inputs_shape[-1:]
-        beta, gamma = None, None
-
-        if center:
-                beta = _variable_on_cpu('beta', params_shape, tf.zeros_initializer)
-        if scale:
-                gamma = _variable_on_cpu('gamma', params_shape, tf.ones_initializer)
-
-        # moving_collections = [moving_vars, tf.GraphKeys.MOVING_AVERAGE_VARIABLES]
-        moving_mean = _variable_on_cpu('moving_mean', params_shape,tf.zeros_initializer, trainable = False)
-        # tf.add_to_collection(tf.GraphKeys.MOVING_AVERAGE_VARIABLES, moving_mean)
-        moving_variance = _variable_on_cpu('moving_variance', params_shape, tf.ones_initializer(), trainable = False)
-        # tf.add_to_collection(tf.GraphKeys.MOVING_AVERAGE_VARIABLES, moving_variance)
-        
-        def train_phase():
-            mean, variance = tf.nn.moments(inputs, axis)
-            update_moving_mean = moving_averages.assign_moving_average(moving_mean, mean, decay)
-            update_moving_variance = moving_averages.assign_moving_average(moving_variance, 
-                                                            variance, decay)
-            with tf.control_dependencies([update_moving_mean, update_moving_variance]):
-                return tf.identity(mean), tf.identity(variance)
-
-        def test_phase():
-            return moving_mean, moving_variance	
-
-        mean, variance = tf.cond(is_training, train_phase, test_phase)
-        outputs = tf.nn.batch_normalization(inputs, mean, variance, beta, gamma, epsilon)
-        outputs.set_shape(inputs.get_shape()) 
-
-        if activation:
-            outputs = activation(outputs)
-
-        return outputs
-
 def triplet_loss(infer, labels, radius = 2.0):
     """
     Args:
@@ -258,20 +194,20 @@ def huber_loss(infer, label, epsilon, layer_name):
         layer_name
     """
     with tf.variable_scope(layer_name):
-        abs_diff = tf.abs(tf.sub(infer, label));
+        abs_diff = tf.abs(tf.subtract(infer, label));
         index = tf.to_int32(abs_diff > epsilon, name = 'partition_index')
         l1_part, l2_part = tf.dynamic_partition(abs_diff, index, 2)
         #l1_loss = tf.reduce_mean(l1_part, name = 'l1_loss')
         #l2_loss = tf.reduce_mean(tf.square(l2_part), name = 'l2_loss')
         l1_part_loss = epsilon * (l1_part - 0.5 * epsilon)
         l2_part_loss = 0.5 * tf.square(l2_part)
-        hloss = tf.reduce_mean(tf.concat(0, [l1_part_loss,l2_part_loss]), 
+        hloss = tf.reduce_mean(tf.concat((l1_part_loss,l2_part_loss), 0), 
                     name = 'huber_loss_sum')
     return hloss
 
 def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding, 
-                         data_format='NCHW', leaky_params=None, wd=0.0, 
-                         layer_name='conv2d'):
+                         data_format='NCHW', bn=False, is_train=False, leaky_params=None, 
+                         wd=0.0, layer_name='conv2d'):
     """
     Args:
         inputs:
@@ -279,9 +215,10 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
         kernel_size: [height, width]
         kernel_stride: [height, width]
         padding: "SAME" or "VALID"
-        data_format: 'NCHW'
-        leaky_params: None will be no relu
-        wd: weight decay params
+        data_format: 'NCHW'.
+        bn: True/False, if do batch norm.
+        leaky_params: None will be no relu.
+        wd: weight decay params.
         layer_name: 
     """
     with tf.variable_scope(layer_name):
@@ -302,6 +239,13 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
 
         biases = _variable_on_cpu('biases', filters, bias_initializer)
         conv = _conv2d(inputs, weights, biases, stride, padding, data_format)
+
+        if bn:
+            axis = -1
+            if data_format == "NCWH":
+                axis = 1
+
+            conv = batch_norm_layer(conv, axis, is_train, True)
 
         if leaky_params is not None:
             conv = add_leaky_relu(conv, leaky_params)
@@ -398,8 +342,9 @@ def res_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name, repeat_nu
         final_conv = tf.add(conv,x, 'res_connect')
     return final_conv
 
-def batch_norm_layer(x, is_train):
-    bn = _batch_norm(x, is_training = is_train)
+def batch_norm_layer(x, axis, is_train, renorm, name='bn'):
+    bn = tf.layers.batch_normalization(
+            x, axis=axis, training=is_train, name=name, renorm=True)
     return bn
 
 
@@ -470,4 +415,24 @@ def one_hot_accuracy(infer, label, layer_name):
         accuracy = tf.reduce_mean(tf.cast(tf.equal(label, infer), tf.float32))
 
     return accuracy
-    
+
+def dense_layer(x, dense_count, dense_concat_dim, layer_name, 
+                dense_module, *module_params, **kw_module_params):
+    """
+    Args:
+        x: input
+        dense_count: dense connected count.
+        dense_concat_dim: concatenate dimention.
+        layer_name: layer_name for the dense net.
+        dense_module: layer for the densenet.
+        *module_params: the params goes into dense_module.
+        **kw_module_params: the key word params goes into dense_module
+    """
+    x_list = []
+    with tf.variable_scope(layer_name):
+        for i in range(dense_count):
+            with tf.variable_scope(layer_name + "_%d"%i):
+                y = dense_module(x, *module_params, **kw_module_params)
+                x_list.append(y)
+                x = tf.concat(x_list, dense_concat_dim)
+    return x
