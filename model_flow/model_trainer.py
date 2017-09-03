@@ -134,6 +134,6 @@ def model_trainer(model, num_gpus, train_input=None, test_input=None):
                 variables_averages_op = variable_averages.apply(tf.trainable_variables())
 
                 train_op = tf.group(apply_gradient_op, variables_averages_op)
-                train_op = apply_gradient_op
+                # train_op = apply_gradient_op
 
     return train_op, loss, test_loss
