@@ -70,10 +70,10 @@ def _add_leaky_relu(hl_tensor, leaky_param):
     """
     return tf.maximum(hl_tensor, tf.multiply(leaky_param, hl_tensor))
 
-def _max_pool(x, ksize, strides):
+def _max_pool(x, ksize, strides, data_format):
     """ 2d pool layer"""
     pool = tf.nn.max_pool(x, ksize=ksize, strides= strides,
-            padding='VALID')
+            padding='VALID', data_format=data_format)
     return pool
 
 def _max_pool3(x, ksize, strides, name):
@@ -229,9 +229,11 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
         if data_format == "NCHW":
             input_channel = input_shape[1]
             stride = [1, 1, kernel_stride[0], kernel_stride[1]]
-        else:
+        elif data_format == "NHWC":
             input_channel = input_shape[3]
             stride = [1, kernel_stride[0], kernel_stride[1], 1]
+        else:
+            raise NotImplementedError
 
         weights = _variable_with_weight_decay('weights', 
                                               kernel_size + [input_channel, filters], 
@@ -291,24 +293,83 @@ def fully_connected_layer(x, filters, leaky_params=None, wd=0.0, layer_name="fc"
 
     return fc
 
-def deconvolution_2d_layer(x, kernel_shape, kernel_stride, output_shape, padding, wd, layer_name):
+def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, data_format, 
+                           bn, is_train, leaky_params, wd, layer_name):
     """
     Args:
-        x
-        kernel_shape: [height, width, output_channel, input_channel]
+        # Args:
+        #     inputs:
+        #     filters: integer
+        #     kernel_size: [height, width]
+        #     kernel_stride: [height, width]
+        #     padding: "SAME" or "VALID"
+        #     data_format: 'NCHW'.
+        #     bn: True/False, if do batch norm.
+        #     leaky_params: None will be no relu.
+        #     wd: weight decay params.
+        #     layer_name: 
+        inputs:
+        filters: number of output channel.
+        kernel_size: [height, width]
         kernel_stride: [height, width]
-        output_shape: [batch_size, height, width, channel]
         padding: "SAME" or "VALID"
-        wd: weight decay params
+        data_format: "NCHW"
+        bn: True/False, if do batch norm.
+        leaky_params: None will be no relu.
+        wd: weight decay params.
         layer_name: 
+        # output_shape: [batch_size, height, width, channel]
+        # padding: "SAME" or "VALID"
+        # wd: weight decay params
+        # layer_name: 
     """
     with tf.variable_scope(layer_name):
-        weights = _variable_with_weight_decay('weights', kernel_shape, wd)
-        biases = _variable_on_cpu('biases', [kernel_shape[-2]], tf.constant_initializer(0.0))
-        deconv = _deconv2d(x, weights, biases, output_shape, [1, kernel_stride[0], kernel_stride[1], 1], padding)
+        kernel_initializer = tf.contrib.layers.xavier_initializer()
+        bias_initializer = tf.zeros_initializer
+
+        if data_format == "NCHW":
+            data_format = 'channels_first'
+        else:
+            data_format = 'channels_last'
+
+        deconv = tf.layers.conv2d_transpose(
+                    inputs=inputs,
+                    filters=filters,
+                    kernel_size=kernel_size,
+                    strides=strides,
+                    padding=padding,
+                    data_format=data_format,
+                    activation=None,
+                    use_bias=True,
+                    kernel_initializer=kernel_initializer,
+                    bias_initializer=bias_initializer,
+                    kernel_regularizer=None,
+                    bias_regularizer=None,
+                    activity_regularizer=None,
+                    trainable=True,
+                    name='deconv',
+                    reuse=None
+                )
+        scope = tf.get_variable_scope().name
+
+        if wd != 0.0:
+            kernel = tf.get_default_graph().get_tensor_by_name(scope + '/deconv/kernel:0')
+            weight_decay = tf.multiply(tf.nn.l2_loss(kernel), wd, name='weight_decay_loss')
+            tf.add_to_collection('losses', weight_decay)
+
+        if bn:
+            axis = -1
+            if data_format == "NCWH":
+                axis = 1
+
+            deconv = batch_norm_layer(deconv, axis, is_train, True)
+
+        if leaky_params is not None:
+            deconv = add_leaky_relu(deconv, leaky_params)
+
     return deconv
 
-def maxpool_2d_layer(x, kernel_shape, kernel_stride, layer_name):
+def maxpool_2d_layer(x, kernel_shape, kernel_stride, data_format, layer_name):
     """
     Args:
         x
@@ -317,7 +378,16 @@ def maxpool_2d_layer(x, kernel_shape, kernel_stride, layer_name):
     """
 
     with tf.variable_scope(layer_name):
-        max_pool = _max_pool(x, [1, kernel_shape[0], kernel_shape[1], 1], [1, kernel_stride[0], kernel_stride[1], 1])
+        if data_format == "NCHW":
+            kernel_shape = [1, 1, kernel_shape[0], kernel_shape[1]]
+            stride = [1, 1, kernel_stride[0], kernel_stride[1]]
+        elif data_format == "NHWC":
+            kernel_shape = [1, kernel_shape[0], kernel_shape[1], 1]
+            stride = [1, kernel_stride[0], kernel_stride[1], 1]
+        else:
+            raise NotImplementedError
+
+        max_pool = _max_pool(x, kernel_shape, stride, data_format)
     return max_pool
 
 
@@ -344,7 +414,7 @@ def res_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name, repeat_nu
 
 def batch_norm_layer(x, axis, is_train, renorm, name='bn'):
     bn = tf.layers.batch_normalization(
-            x, axis=axis, training=is_train, name=name, renorm=True)
+            x, axis=axis, training=is_train, name=name, renorm=renorm)
     return bn
 
 
