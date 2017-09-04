@@ -132,7 +132,10 @@ def model_trainer(model, num_gpus, train_input=None, test_input=None):
 
                 variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
                 variables_averages_op = variable_averages.apply(tf.trainable_variables())
-
-                train_op = tf.group(apply_gradient_op, variables_averages_op)
+                
+                # Updating for batch normalization
+                update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+                with tf.control_dependencies(update_ops):
+                    train_op = tf.group(apply_gradient_op, variables_averages_op)
 
     return train_op, loss, test_loss
