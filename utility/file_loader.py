@@ -95,17 +95,10 @@ class JsonFileLoader(FileLoader):
     def __init__(self):
         super(JsonFileLoader, self).__init__()
 
-    def read_file(self, file_name, header=False, shuffle=False):
+    def read_file(self, file_name, shuffle=False):
         self._pre_read_file(file_name, shuffle)
 
         with open(file_name) as input_file:
             self._decoded_file = json.load(input_file)
 
-        if header:
-            self.header = self._decoded_file[0]
-            self._decoded_file = self._decoded_file[1:]
-
         self._post_read_file()
-
-    def get_header(self):
-        return self.header
