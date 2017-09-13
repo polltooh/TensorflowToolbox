@@ -4,14 +4,15 @@ from tensorflow.python.training import moving_averages
 
 FLAGS = tf.app.flags.FLAGS
 
-def _variable_on_cpu(name, shape, initializer, trainable = True):
+
+def _variable_on_cpu(name, shape, initializer, trainable=True):
     """Helper to create a Variable stored on CPU memory.
-    
+
     Args:
             name: name of the variable
             shape: list of ints
             initializer: initializer for Variable
-    
+
     Returns:
             Variable Tensor
     """
@@ -19,19 +20,20 @@ def _variable_on_cpu(name, shape, initializer, trainable = True):
         var = tf.get_variable(name, shape, initializer=initializer, trainable=trainable)
     return var
 
-def _variable_with_weight_decay(name, shape, wd = 0.0,
+
+def _variable_with_weight_decay(name, shape, wd=0.0,
                                 initializer=tf.contrib.layers.xavier_initializer()):
     """Helper to create an initialized Variable with weight decay.
-    
+
     Note that the Variable is initialized with a xavier initialization.
     A weight decay is added only if one is specified.
-    
+
     #Args:
             name: name of the variable
             shape: list of ints
             wd: add L2Loss weight decay multiplied by this float. If None, weight
                     decay is not added for this Variable.
-   
+
     Returns:
             Variable Tensor
     """
@@ -43,24 +45,25 @@ def _variable_with_weight_decay(name, shape, wd = 0.0,
         tf.add_to_collection('losses', weight_decay)
     return var
 
+
 def _conv2d(x, w, b, strides, padding, data_format=None):
     return tf.nn.bias_add(tf.nn.conv2d(x, w, strides=strides, padding=padding,
-                          data_format=data_format), b, data_format=data_format)
+                                       data_format=data_format), b, data_format=data_format)
 
-def _conv3d(x, w, b, strides = [1,1,1,1,1], padding = 'SAME'):
-    return tf.nn.bias_add(tf.nn.conv3d(x, w,strides=strides, padding = padding), b)
 
-def add_leaky_relu(hl_tensor, leaky_param, layer_name = None):
-    # if layer_name is None:
-    #     layer_name = hl_tensor.op.name + "_lrelu"
+def _conv3d(x, w, b, strides=[1, 1, 1, 1, 1], padding='SAME'):
+    return tf.nn.bias_add(tf.nn.conv3d(x, w, strides=strides, padding=padding), b)
 
-    # with tf.variable_scope(layer_name):
+
+def add_leaky_relu(hl_tensor, leaky_param, layer_name=None):
     with tf.name_scope(layer_name, 'relu'):
         leaky_relu = tf.maximum(hl_tensor, tf.multiply(leaky_param, hl_tensor))
     return leaky_relu
 
-def _deconv2d(x, w, b, output_shape, strides, padding):
-    return tf.nn.bias_add(tf.nn.conv2d_transpose(x, w, output_shape, strides, padding), b)
+
+def _deconv2d(x, w, b, output_shape, strides, padding, data_format):
+    return tf.nn.bias_add(tf.nn.conv2d_transpose(
+        x, w, output_shape, strides, padding, data_format), b)
 
 
 def _add_leaky_relu(hl_tensor, leaky_param):
@@ -70,25 +73,29 @@ def _add_leaky_relu(hl_tensor, leaky_param):
     """
     return tf.maximum(hl_tensor, tf.multiply(leaky_param, hl_tensor))
 
+
 def _max_pool(x, ksize, strides, data_format):
     """ 2d pool layer"""
-    pool = tf.nn.max_pool(x, ksize=ksize, strides= strides,
-            padding='VALID', data_format=data_format)
+    pool = tf.nn.max_pool(x, ksize=ksize, strides=strides,
+                          padding='VALID', data_format=data_format)
     return pool
+
 
 def _max_pool3(x, ksize, strides, name):
     """ 3d pool layer"""
-    pool = tf.nn.max_pool3d(x, ksize=ksize, strides= strides,
-        padding='VALID', name = name)
+    pool = tf.nn.max_pool3d(x, ksize=ksize, strides=strides,
+                            padding='VALID', name=name)
     return pool
+
 
 def _avg_pool3(x, ksize, strides, name):
     """ 3d average pool layer """
-    pool = tf.nn.avg_pool3d(x, ksize = ksize, strides = strides,
-            padding = 'VALID', name = name)
+    pool = tf.nn.avg_pool3d(x, ksize=ksize, strides=strides,
+                            padding='VALID', name=name)
     return pool
 
-def triplet_loss(infer, labels, radius = 2.0):
+
+def triplet_loss(infer, labels, radius=2.0):
     """
     Args:
         infer: inference concatenate together with 2 * batch_size
@@ -97,22 +104,24 @@ def triplet_loss(infer, labels, radius = 2.0):
     Return:
         loss: triplet loss
     """
-            
-    feature_1, feature_2 = tf.split(0,2,infer)
+
+    feature_1, feature_2 = tf.split(0, 2, infer)
 
     feature_diff = tf.reduce_sum(tf.square(feature_1 - feature_2), 1)
     feature_list = tf.dynamic_partition(feature_diff, labels, 2)
 
     pos_list = feature_list[1]
-    neg_list  = (tf.maximum(0.0, radius * radius - feature_list[0]))
-    full_list = tf.concat(0,[pos_list, neg_list])
+    neg_list = (tf.maximum(0.0, radius * radius - feature_list[0]))
+    full_list = tf.concat(0, [pos_list, neg_list])
     loss = tf.reduce_mean(full_list)
 
     return loss
 
+
 def l1_reg(input_tensor, weights):
-    l1_reg_loss = tf.multiply(tf.reduce_sum(tf.abs(input_tensor)), weights, name = "l1_reg_loss")
+    l1_reg_loss = tf.multiply(tf.reduce_sum(tf.abs(input_tensor)), weights, name="l1_reg_loss")
     tf.add_to_collection('losses', l1_reg_loss)
+
 
 def l2_loss(infer, label, loss_type, layer_name):
     """
@@ -130,6 +139,7 @@ def l2_loss(infer, label, loss_type, layer_name):
 
     return loss
 
+
 def l1_loss(infer, label, loss_type, layer_name):
     """
     Args:
@@ -146,6 +156,7 @@ def l1_loss(infer, label, loss_type, layer_name):
 
     return loss
 
+
 def x_entropy_loss(infer, label, layer_name):
     """
     Args:
@@ -155,7 +166,7 @@ def x_entropy_loss(infer, label, layer_name):
     """
     with tf.variable_scope(layer_name):
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-                            logits = infer, labels = label))
+            logits=infer, labels=label))
     return loss
 
 
@@ -169,21 +180,24 @@ def image_l2_loss(infer, label, layer_name):
             calculate the mean for the entire batch
     """
     with tf.variable_scope(layer_name):
-        l2_loss = tf.reduce_mean(tf.reduce_sum(tf.square(infer - label), 
-                        [1,2,3]), name = 'l2_loss')
-    return l2_loss 
+        l2_loss = tf.reduce_mean(tf.reduce_sum(tf.square(infer - label),
+                                               [1, 2, 3]), name='l2_loss')
+    return l2_loss
+
 
 def image_l1_loss(infer, label, layer_name):
     with tf.variable_scope(layer_name):
         l1_loss = tf.reduce_mean(tf.reduce_sum(tf.abs(infer - label),
-                        [1,2,3]), name = "l1_loss")
-    return l1_loss 
+                                               [1, 2, 3]), name="l1_loss")
+    return l1_loss
+
 
 def count_diff(infer, label, layer_name):
     with tf.variable_scope(layer_name):
         img_diff = tf.reduce_mean(tf.abs(tf.reduce_sum((infer - label),
-                        [1,2,3])), name = "count_diff")
-    return img_diff 
+                                                       [1, 2, 3])), name="count_diff")
+    return img_diff
+
 
 def huber_loss(infer, label, epsilon, layer_name):
     """
@@ -194,19 +208,20 @@ def huber_loss(infer, label, epsilon, layer_name):
         layer_name
     """
     with tf.variable_scope(layer_name):
-        abs_diff = tf.abs(tf.subtract(infer, label));
-        index = tf.to_int32(abs_diff > epsilon, name = 'partition_index')
+        abs_diff = tf.abs(tf.subtract(infer, label))
+        index = tf.to_int32(abs_diff > epsilon, name='partition_index')
         l1_part, l2_part = tf.dynamic_partition(abs_diff, index, 2)
         #l1_loss = tf.reduce_mean(l1_part, name = 'l1_loss')
         #l2_loss = tf.reduce_mean(tf.square(l2_part), name = 'l2_loss')
         l1_part_loss = epsilon * (l1_part - 0.5 * epsilon)
         l2_part_loss = 0.5 * tf.square(l2_part)
-        hloss = tf.reduce_mean(tf.concat((l1_part_loss,l2_part_loss), 0), 
-                    name = 'huber_loss_sum')
+        hloss = tf.reduce_mean(tf.concat((l1_part_loss, l2_part_loss), 0),
+                               name='huber_loss_sum')
     return hloss
 
-def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding, 
-                         data_format='NCHW', bn=False, is_train=False, leaky_params=None, 
+
+def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
+                         data_format='NCHW', bn=False, is_train=False, leaky_params=None,
                          wd=0.0, layer_name='conv2d'):
     """
     Args:
@@ -235,8 +250,8 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
         else:
             raise NotImplementedError
 
-        weights = _variable_with_weight_decay('weights', 
-                                              kernel_size + [input_channel, filters], 
+        weights = _variable_with_weight_decay('weights',
+                                              kernel_size + [input_channel, filters],
                                               wd, kerner_initializer)
 
         biases = _variable_on_cpu('biases', filters, bias_initializer)
@@ -254,6 +269,7 @@ def convolution_2d_layer(inputs, filters, kernel_size, kernel_stride, padding,
 
     return conv
 
+
 def fully_connected_layer(x, filters, leaky_params=None, wd=0.0, layer_name="fc"):
     """
     Args:
@@ -263,7 +279,7 @@ def fully_connected_layer(x, filters, leaky_params=None, wd=0.0, layer_name="fc"
         layer_num
     """
     #input_shape = x.get_shape().as_list()
-    #if len(input_shape) > 2:
+    # if len(input_shape) > 2:
     #    x = tf.reshape(x, [input_shape[0], -1])
 
     #input_shape = x.get_shape().as_list()
@@ -281,8 +297,8 @@ def fully_connected_layer(x, filters, leaky_params=None, wd=0.0, layer_name="fc"
         kerner_initializer = tf.contrib.layers.xavier_initializer()
         bias_initializer = tf.zeros_initializer
 
-        weights = _variable_with_weight_decay('weights', 
-                                              [input_channel, filters], 
+        weights = _variable_with_weight_decay('weights',
+                                              [input_channel, filters],
                                               wd, kerner_initializer)
 
         biases = _variable_on_cpu('biases', filters, bias_initializer)
@@ -293,21 +309,66 @@ def fully_connected_layer(x, filters, leaky_params=None, wd=0.0, layer_name="fc"
 
     return fc
 
-def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, data_format, 
-                           bn, is_train, leaky_params, wd, layer_name):
+
+def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, output_shape,
+                           data_format, bn, is_train, leaky_params, wd, layer_name):
     """
     Args:
-        # Args:
-        #     inputs:
-        #     filters: integer
-        #     kernel_size: [height, width]
-        #     kernel_stride: [height, width]
-        #     padding: "SAME" or "VALID"
-        #     data_format: 'NCHW'.
-        #     bn: True/False, if do batch norm.
-        #     leaky_params: None will be no relu.
-        #     wd: weight decay params.
-        #     layer_name: 
+        inputs:
+        filters: number of output channel.
+        kernel_size: [height, width]
+        stride: [height, width]
+        padding: "SAME" or "VALID"
+        output_shape: [b, h, w, c] or [b, c, h, w]
+        data_format: "NCHW"
+        bn: True/False, if do batch norm.
+        leaky_params: None will be no relu.
+        wd: weight decay params.
+        layer_name: 
+    """
+    with tf.variable_scope(layer_name):
+        input_shape = inputs.get_shape().as_list()
+
+        kerner_initializer = tf.contrib.layers.xavier_initializer()
+        bias_initializer = tf.zeros_initializer
+
+        if data_format == "NCHW":
+            input_channel = input_shape[1]
+            strides = [1, 1, strides[0], strides[1]]
+        elif data_format == "NHWC":
+            input_channel = input_shape[3]
+            strides = [1, strides[0], strides[1], 1]
+        else:
+            raise NotImplementedError
+
+        kernel_initializer = tf.contrib.layers.xavier_initializer()
+        bias_initializer = tf.zeros_initializer
+
+        weights = _variable_with_weight_decay('weights',
+                                              kernel_size + [input_channel, filters],
+                                              wd, kerner_initializer)
+
+        biases = _variable_on_cpu('biases', filters, bias_initializer)
+
+        deconv = _deconv2d(inputs, weights, biases, output_shape, strides, padding, data_format)
+
+        if bn:
+            axis = -1
+            if data_format == "NCWH":
+                axis = 1
+
+            deconv = batch_norm_layer(deconv, axis, is_train, True)
+
+        if leaky_params is not None:
+            deconv = add_leaky_relu(deconv, leaky_params)
+
+    return deconv
+
+
+def deconvolution_2d_layer2(inputs, filters, kernel_size, strides, padding, data_format,
+                            bn, is_train, leaky_params, wd, layer_name):
+    """
+    Args:
         inputs:
         filters: number of output channel.
         kernel_size: [height, width]
@@ -333,23 +394,23 @@ def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, data_
             data_format = 'channels_last'
 
         deconv = tf.layers.conv2d_transpose(
-                    inputs=inputs,
-                    filters=filters,
-                    kernel_size=kernel_size,
-                    strides=strides,
-                    padding=padding,
-                    data_format=data_format,
-                    activation=None,
-                    use_bias=True,
-                    kernel_initializer=kernel_initializer,
-                    bias_initializer=bias_initializer,
-                    kernel_regularizer=None,
-                    bias_regularizer=None,
-                    activity_regularizer=None,
-                    trainable=True,
-                    name='deconv',
-                    reuse=None
-                )
+            inputs=inputs,
+            filters=filters,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            data_format=data_format,
+            activation=None,
+            use_bias=True,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            kernel_regularizer=None,
+            bias_regularizer=None,
+            activity_regularizer=None,
+            trainable=True,
+            name='deconv',
+            reuse=None
+        )
         scope = tf.get_variable_scope().name
 
         if wd != 0.0:
@@ -368,6 +429,7 @@ def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, data_
             deconv = add_leaky_relu(deconv, leaky_params)
 
     return deconv
+
 
 def maxpool_2d_layer(x, kernel_shape, kernel_stride, data_format, layer_name):
     """
@@ -391,7 +453,7 @@ def maxpool_2d_layer(x, kernel_shape, kernel_stride, data_format, layer_name):
     return max_pool
 
 
-def res_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name, repeat_num, leaky_param = 0.01, is_train = None):
+def res_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name, repeat_num, leaky_param=0.01, is_train=None):
     """
     Args:
         x
@@ -403,18 +465,19 @@ def res_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name, repeat_nu
     with tf.variable_scope(layer_name):
         conv = tf.identity(x)
         for i in xrange(repeat_num):
-            conv = convolution_2d_layer(conv, kernel_shape, 
-                        kernel_stride, padding, wd, "_%d"%i)
+            conv = convolution_2d_layer(conv, kernel_shape,
+                                        kernel_stride, padding, wd, "_%d" % i)
             if is_train is not None:
-                conv = _batch_norm(conv, is_training = is_train)
+                conv = _batch_norm(conv, is_training=is_train)
             conv = add_leaky_relu(conv, leaky_param)
 
-        final_conv = tf.add(conv,x, 'res_connect')
+        final_conv = tf.add(conv, x, 'res_connect')
     return final_conv
+
 
 def batch_norm_layer(x, axis, is_train, renorm, name='bn'):
     bn = tf.layers.batch_normalization(
-            x, axis=axis, training=is_train, name=name, renorm=renorm)
+        x, axis=axis, training=is_train, name=name, renorm=renorm)
     return bn
 
 
@@ -429,7 +492,7 @@ def res_pad(x, input_channel, output_channel, layer_name):
     with tf.variable_scope(layer_name):
         forward_pad = (output_channel - input_channel) // 2
         backward_pad = output_channel - input_channel - forward_pad
-        x_pad = tf.pad(x, [[0,0],[0,0],[0,0],[forward_pad, backward_pad]])
+        x_pad = tf.pad(x, [[0, 0], [0, 0], [0, 0], [forward_pad, backward_pad]])
     return x_pad
 
 
@@ -443,9 +506,10 @@ def copy_layer(x, layer_handle, repeat_num, layer_name, *params):
         params: parameters for the function
     """
     for i in xrange(repeat_num):
-        with tf.variable_scope(layer_name + "_%d"%i):
+        with tf.variable_scope(layer_name + "_%d" % i):
             x = layer_handle(x, *params)
     return x
+
 
 def unpooling_layer(x, output_size, layer_name):
     """ Bilinear Interpotation resize 
@@ -456,6 +520,7 @@ def unpooling_layer(x, output_size, layer_name):
     """
     with tf.variable_scope(layer_name):
         return tf.image.resize_images(x, output_size[0], output_size[1])
+
 
 def atrous_convolution_layer(x, kernel_shape, rate, padding, wd, layer_name):
     """
@@ -473,6 +538,7 @@ def atrous_convolution_layer(x, kernel_shape, rate, padding, wd, layer_name):
         atrous_conv = tf.nn.atrous_conv2d(x, weights, rate, padding)
     return atrous_conv
 
+
 def one_hot_accuracy(infer, label, layer_name):
     """
     Args:
@@ -486,7 +552,8 @@ def one_hot_accuracy(infer, label, layer_name):
 
     return accuracy
 
-def dense_layer(x, dense_count, dense_concat_dim, layer_name, 
+
+def dense_layer(x, dense_count, dense_concat_dim, layer_name,
                 dense_module, *module_params, **kw_module_params):
     """
     Args:
@@ -501,7 +568,7 @@ def dense_layer(x, dense_count, dense_concat_dim, layer_name,
     x_list = []
     with tf.variable_scope(layer_name):
         for i in range(dense_count):
-            with tf.variable_scope(layer_name + "_%d"%i):
+            with tf.variable_scope(layer_name + "_%d" % i):
                 y = dense_module(x, *module_params, **kw_module_params)
                 x_list.append(y)
                 x = tf.concat(x_list, dense_concat_dim)
