@@ -476,8 +476,13 @@ def res_layer(x, kernel_shape, kernel_stride, padding, wd, layer_name, repeat_nu
 
 
 def batch_norm_layer(x, axis, is_train, renorm, name='bn'):
-    bn = tf.layers.batch_normalization(
-        x, axis=axis, training=is_train, name=name, renorm=renorm)
+    if axis == -1:
+        data_format = 'NHWC'
+    else:
+        data_format = 'NCHW'
+    bn = tf.contrib.layers.batch_norm(
+            x, is_training=is_train, fused=True, data_format=data_format, renorm=False)
+
     return bn
 
 

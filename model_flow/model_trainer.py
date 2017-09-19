@@ -3,9 +3,9 @@ import tensorflow as tf
 
 def average_gradients(grads_list, loss_list):
     """Calculate the average gradient for each shared variable across all towers.
-    
+
     Note that this function provides a synchronization point across all towers.
-    
+
     Args:
     grads_list: List of lists of (gradient, variable) tuples. The outer list
       is over individual gradients. The inner list is over the gradient
@@ -22,16 +22,23 @@ def average_gradients(grads_list, loss_list):
             #   ((grad0_gpu0, var0_gpu0), ... , (grad0_gpuN, var0_gpuN))
             grads = []
             for g, _ in grad_and_vars:
+                # in case that the g has no gradient.
+                if g is None:
+                    continue
                 # Add 0 dimension to the gradients to represent the tower.
                 expanded_g = tf.expand_dims(g, 0)
-                
+
                 # Append on a 'tower' dimension which we will average over below.
                 grads.append(expanded_g)
-        
+
+            if len(grads) == 0:
+                print(grad_and_vars, ' contains empty gradient')
+                continue
+
             # Average over the 'tower' dimension.
             grad = tf.concat(grads, 0)
             grad = tf.reduce_mean(grad, 0)
-        
+
             # Keep in mind that the Variables are redundant because they are shared
             # across towers. So .. we will just return the first tower's pointer to
             # the Variable.
@@ -41,10 +48,12 @@ def average_gradients(grads_list, loss_list):
 
     return average_loss, average_grads
 
+
 def var_getter(device):
     def custom_getter(getter, name, *args, **kwargs):
         with tf.device(device):
             return getter(name, *args, **kwargs)
+
 
 def single_grad(model, opt, batch_data, is_train, scope, reuse):
     custom_getter = var_getter('/cpu:0')
@@ -61,7 +70,8 @@ def single_grad(model, opt, batch_data, is_train, scope, reuse):
             grads = opt.compute_gradients(loss)
         else:
             grads = None
-    return loss, grads 
+    return loss, grads
+
 
 def multi_grads(model, num_gpus, train_input=None, test_input=None):
     grads_list = list()
@@ -74,20 +84,20 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
     test_loss = None
 
     is_train = False
-    if train_input is not None: 
+    if train_input is not None:
         is_train = True
         if num_gpus >= 1:
             for i in xrange(num_gpus):
                 with tf.device('/gpu:%d' % i):
                     loss, grads = single_grad(model, opt, train_input[i], is_train,
-                                        "%s_train_%i"%(scope,i), reuse=(i>0))
+                                              "%s_train_%i" % (scope, i), reuse=(i > 0))
                     loss_list.append(loss)
                     grads_list.append(grads)
 
         else:
             with tf.device('/cpu'):
-                loss, grads = single_grad(model, opt, train_input, is_train, 
-                                          "%s_train"%(scope), reuse=False)
+                loss, grads = single_grad(model, opt, train_input, is_train,
+                                          "%s_train" % (scope), reuse=False)
                 grads_list.append(grads)
                 loss_list.append(loss)
 
@@ -99,16 +109,17 @@ def multi_grads(model, num_gpus, train_input=None, test_input=None):
             test_loss_list = list()
             for i in xrange(num_gpus):
                 with tf.device('/gpu:%d' % 0):
-                    test_loss, test_grads = single_grad(model, opt, test_input[i], False, 
-                                                        "%s_test_%i"%(scope, i), reuse)
+                    test_loss, test_grads = single_grad(model, opt, test_input[i], False,
+                                                        "%s_test_%i" % (scope, i), reuse)
                     test_loss_list.append(test_loss)
             test_loss = tf.reduce_mean(test_loss_list)
         else:
             with tf.device('/cpu:0'):
-                test_loss, _ = single_grad(model, opt, test_input, False, 
-                                                    "%s_test"%(scope), reuse)
+                test_loss, _ = single_grad(model, opt, test_input, False,
+                                           "%s_test" % (scope), reuse)
 
     return loss, grads, test_loss
+
 
 def model_trainer(model, num_gpus, train_input=None, test_input=None):
     """ Function for training the model.
@@ -124,7 +135,7 @@ def model_trainer(model, num_gpus, train_input=None, test_input=None):
         if grads is not None:
             opt = model.model_optimizer()
             with tf.variable_scope('trainer'):
-                global_step = tf.get_variable('global_step', [], 
+                global_step = tf.get_variable('global_step', [],
                                               initializer=tf.constant_initializer(0),
                                               trainable=False)
 
@@ -132,7 +143,7 @@ def model_trainer(model, num_gpus, train_input=None, test_input=None):
 
                 variable_averages = tf.train.ExponentialMovingAverage(0.9999, global_step)
                 variables_averages_op = variable_averages.apply(tf.trainable_variables())
-                
+
                 # Updating for batch normalization
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
                 with tf.control_dependencies(update_ops):
