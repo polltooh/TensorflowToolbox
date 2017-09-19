@@ -22,6 +22,7 @@ def average_gradients(grads_list, loss_list):
             #   ((grad0_gpu0, var0_gpu0), ... , (grad0_gpuN, var0_gpuN))
             grads = []
             for g, _ in grad_and_vars:
+
                 # in case that the g has no gradient.
                 if g is None:
                     continue
