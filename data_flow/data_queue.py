@@ -2,12 +2,6 @@ import tensorflow as tf
 
 
 def init_file_queue(shuffle, capacity, dtypes, shapes, name, min_after_dequeue):
-    #print(shuffle)
-    #print(capacity)
-    #print(dtypes)
-    #print(shapes)
-    #print(name)
-    #print(min_after_dequeue)
     if shuffle:
         file_queue = tf.RandomShuffleQueue(
                 capacity=capacity,
