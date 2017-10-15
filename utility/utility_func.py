@@ -1,10 +1,9 @@
+import os 
+from time import gmtime, strftime
+
 import tensorflow as tf
 import numpy as np
 import cv2
-from PIL import Image
-import os 
-import re
-from time import gmtime, strftime
 
 def write_to_logs(file_name, write_string):
     """
@@ -241,6 +240,7 @@ def define_graph_config(fraction):
     config_proto.gpu_options.per_process_gpu_memory_fraction = fraction
     config_proto.allow_soft_placement=True
     config_proto.log_device_placement=False
+    config_proto.gpu_options.allow_growth=True
     return config_proto
 
 def dense_to_one_hot_numpy(labels_dense, num_classes):
