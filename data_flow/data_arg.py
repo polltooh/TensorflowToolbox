@@ -231,3 +231,26 @@ class DataArg(object):
         data = self.rcrop(data, arg_dict, seed)
 
         return data
+
+    def rflip_lr_image_box(self, image, box):
+        """
+        Args:
+            box: [n, 4], [xmin, ymin, xmax, ymax]
+            image: [h, w, c]
+
+        """
+
+        def flip_box(box, image_width):
+            box_x_min = image_width - box[:, 2]
+            box_x_max = image_width - box[:, 0]
+            box = tf.stack([box_x_min, box[:, 1], box_x_max, box[:, 3]], 1)
+            return box
+        
+        image_width = image.get_shape().as_list()[1]
+        rflip_lr_op = tf.random_uniform([], minval = 0,
+                    maxval = 2, dtype = tf.int32)
+        mirror = tf.less(rflip_lr_op, 1)
+        image = tf.cond(mirror, lambda: tf.reverse(image, [1]), lambda: image)
+        box = tf.cond(mirror, lambda: flip_box(box, image_width), lambda: box)
+
+        return image, box

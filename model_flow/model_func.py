@@ -199,24 +199,25 @@ def count_diff(infer, label, layer_name):
     return img_diff
 
 
-def huber_loss(infer, label, epsilon, layer_name):
+def huber_loss(infer, label, epsilon, reduction, layer_name):
     """
     Args:
         infer
         label
         epsilon
+        reduction: "MEAN" or "SUM"
         layer_name
     """
+    if reduction == "MEAN":
+        reduction_method = tf.losses.Reduction.MEAN
+    elif reduction == "SUM":
+        reduction_method = tf.losses.Reduction.SUM
+    else:
+        raise NotImplementedError("reduction {} is not implemented".format(reduction))
+
     with tf.variable_scope(layer_name):
-        abs_diff = tf.abs(tf.subtract(infer, label))
-        index = tf.to_int32(abs_diff > epsilon, name='partition_index')
-        l1_part, l2_part = tf.dynamic_partition(abs_diff, index, 2)
-        #l1_loss = tf.reduce_mean(l1_part, name = 'l1_loss')
-        #l2_loss = tf.reduce_mean(tf.square(l2_part), name = 'l2_loss')
-        l1_part_loss = epsilon * (l1_part - 0.5 * epsilon)
-        l2_part_loss = 0.5 * tf.square(l2_part)
-        hloss = tf.reduce_mean(tf.concat((l1_part_loss, l2_part_loss), 0),
-                               name='huber_loss_sum')
+        hloss = tf.losses.huber_loss(labels=label, predictions=infer, delta=epsilon,
+                                     reduction=reduction_method)
     return hloss
 
 
@@ -527,7 +528,10 @@ def unpooling_layer(x, output_size, layer_name):
         return tf.image.resize_images(x, output_size[0], output_size[1])
 
 
-def atrous_convolution_layer(x, kernel_shape, rate, padding, wd, layer_name):
+def atrous_convolution_layer(inputs, filters, kernel_size, rate, padding="SAME", 
+                             data_format="NCHW", 
+                             bn=False, is_train=False, leaky_params=None, wd=0.0,
+                             layer_name='atrous_conv2d'):
     """
     Args:
         x
@@ -538,9 +542,42 @@ def atrous_convolution_layer(x, kernel_shape, rate, padding, wd, layer_name):
         layer_name
     """
     with tf.variable_scope(layer_name):
-        weights = _variable_with_weight_decay('weights', kernel_shape, wd)
-        biases = _variable_on_cpu('biases', [kernel_shape[-1]], tf.constant_initializer(0.0))
-        atrous_conv = tf.nn.atrous_conv2d(x, weights, rate, padding)
+        input_shape = inputs.get_shape().as_list()
+
+        kerner_initializer = tf.contrib.layers.xavier_initializer()
+        bias_initializer = tf.zeros_initializer
+        if data_format == "NCHW":
+            input_channel = input_shape[1]
+            inputs = tf.transpose(inputs, [0, 2, 3, 1])
+        elif data_format == "NHWC":
+            input_channel = input_shape[3]
+        else:
+            raise NotImplementedError
+
+        weights = _variable_with_weight_decay('weights',
+                                              kernel_size + [input_channel, filters],
+                                              wd, kerner_initializer)
+
+        biases = _variable_on_cpu('biases', filters, bias_initializer)
+        
+        atrous_conv = tf.nn.atrous_conv2d(inputs, weights, rate, padding)
+
+        if data_format == "NCHW":
+            atrous_conv = tf.transpose(inputs, [0, 3, 1, 2])
+
+        atrous_conv = tf.nn.bias_add(atrous_conv, biases, data_format=data_format)
+
+        if bn:
+            axis = -1
+            if data_format == "NCWH":
+                axis = 1
+
+            atrous_conv = batch_norm_layer(atrous_conv, axis, is_train, True)
+
+        if leaky_params is not None:
+            atrous_conv = add_leaky_relu(atrous_conv, leaky_params)
+
+
     return atrous_conv
 
 
@@ -578,3 +615,12 @@ def dense_layer(x, dense_count, dense_concat_dim, layer_name,
                 x_list.append(y)
                 x = tf.concat(x_list, dense_concat_dim)
     return x
+
+
+def dropout_layer(input_tensor, dropout_rate, is_train):
+    if is_train:
+        dropout = tf.nn.dropout(input_tensor, dropout_rate)
+    else:
+        dropout = input_tensor
+
+    return dropout

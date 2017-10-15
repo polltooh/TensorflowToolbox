@@ -41,10 +41,13 @@ def save_file(string_list, file_name, shuffle_data = False):
         random.shuffle(string_list)
 
     with open(file_name, "w") as f:
-        file_string = "\n".join(string_list)
-        if (file_string[-1] != "\n"):
-                file_string += "\n"
-        f.write(file_string)
+        if not len(string_list):
+            f.write("")
+        else:
+            file_string = '\n'.join(string_list)
+            if (file_string[-1] != "\n"):
+                    file_string += "\n"
+            f.write(file_string)
 
 def get_file_length(file_name):
     with open(file_name, 'r') as f:
