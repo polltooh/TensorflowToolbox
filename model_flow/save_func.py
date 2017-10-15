@@ -26,12 +26,11 @@ def add_image(image_collection, image_num = -1):
             image_num = var.get_shape()[0]
         tf.summary.image(var.op.name, var, image_num)
 
-def restore_model(sess, saver, model_dir, model_name = None):
+def restore_model(sess, saver, model_dir, model_name=None):
     """ restore model:
             if model_name is None, restore the last one
     """
-    if not model_dir.endswith("/"):
-        model_dir += "/"
+    model_path = os.path.join(model_dir, model_name)
 
     if model_name is None:
         ckpt = tf.train.get_checkpoint_state(model_dir)
@@ -42,7 +41,7 @@ def restore_model(sess, saver, model_dir, model_name = None):
             print('no check point')
     else:
         print("restore " + model_name)
-        saver.restore(sess, model_dir + model_name)
+        saver.restore(sess, model_path)
 	
 def save_model(sess, saver, model_dir, iteration):
     """ save the current model"""
