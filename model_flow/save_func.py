@@ -1,6 +1,8 @@
-import tensorflow as tf
 import time
 import os
+
+import tensorflow as tf
+from tensorflow.python import pywrap_tensorflow
 
 TF_VERSION = tf.__version__.split(".")[1]
 
@@ -77,3 +79,26 @@ def group_mv_ops(train_op, moving_average_decay, global_step):
     all_op = tf.group(train_op, variables_averages_op)
 
     return all_op
+
+
+def partial_restore(pretrain_model_name, sess, exclude_str_list=[]):
+    var_dict = dict()
+    for var in tf.trainable_variables():
+        var_dict[var.op.name] = var
+    reader = pywrap_tensorflow.NewCheckpointReader(pretrain_model_name)
+    var_to_shape_map = reader.get_variable_to_shape_map()
+    restore_dict = {}
+    for key in sorted(var_to_shape_map):
+        if key in var_dict:
+            exclude = [ex_str for ex_str in exclude_str_list if ex_str in key]
+            if exclude:
+               continue
+            restore_dict.update({key: var_dict[key]})
+    
+    if restore_dict:
+        saver = tf.train.Saver(restore_dict)
+        restore_model(sess, saver, "", pretrain_model_name)
+        print('Successfully restored {} vars in {}.'
+              .format(len(restore_dict), pretrain_model_name))
+    else:
+        print('no variable to restore in {}'.format(pretrain_mode_name))
