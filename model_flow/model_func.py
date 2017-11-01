@@ -311,7 +311,7 @@ def fully_connected_layer(x, filters, leaky_params=None, wd=0.0, layer_name="fc"
     return fc
 
 
-def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, output_shape,
+def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, output_size,
                            data_format, bn, is_train, leaky_params, wd, layer_name):
     """
     Args:
@@ -320,7 +320,7 @@ def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, outpu
         kernel_size: [height, width]
         stride: [height, width]
         padding: "SAME" or "VALID"
-        output_shape: [b, h, w, c] or [b, c, h, w]
+        output_size: [h, w]
         data_format: "NCHW"
         bn: True/False, if do batch norm.
         leaky_params: None will be no relu.
@@ -336,9 +336,11 @@ def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, outpu
         if data_format == "NCHW":
             input_channel = input_shape[1]
             strides = [1, 1, strides[0], strides[1]]
+            output_shape = [input_shape[0], filters, output_size[0], output_size[1]]
         elif data_format == "NHWC":
             input_channel = input_shape[3]
             strides = [1, strides[0], strides[1], 1]
+            output_shape = [input_shape[0], output_size[0], output_size[1], filters]
         else:
             raise NotImplementedError
 
@@ -346,7 +348,7 @@ def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, outpu
         bias_initializer = tf.zeros_initializer
 
         weights = _variable_with_weight_decay('weights',
-                                              kernel_size + [input_channel, filters],
+                                              kernel_size + [filters, input_channel],
                                               wd, kerner_initializer)
 
         biases = _variable_on_cpu('biases', filters, bias_initializer)

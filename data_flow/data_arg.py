@@ -232,7 +232,7 @@ class DataArg(object):
 
         return data
 
-    def rflip_lr_image_box(self, image, box, mask=None):
+    def rflip_lr_image_box(self, image, box, mask=None, dense_map=None):
         """
         Args:
             box: [n, 4], [xmin, ymin, xmax, ymax]
@@ -255,8 +255,8 @@ class DataArg(object):
 
         if mask is not None:
             mask = tf.cond(mirror, lambda: tf.reverse(mask, [1]), lambda: mask)
-        
-        if mask is not None:
-            return image, box, mask
-        else:
-            return image, box
+
+        if dense_map is not None:
+            dense_map = tf.cond(mirror, lambda: tf.reverse(dense_map, [1]), lambda: dense_map)
+
+        return image, box, mask, dense_map
