@@ -199,13 +199,14 @@ def count_diff(infer, label, layer_name):
     return img_diff
 
 
-def huber_loss(infer, label, epsilon, reduction, layer_name):
+def huber_loss(infer, label, epsilon, reduction, weights, layer_name):
     """
     Args:
         infer
         label
         epsilon
         reduction: "MEAN" or "SUM"
+        weights: 1 or a vec
         layer_name
     """
     if reduction == "MEAN":
@@ -217,7 +218,7 @@ def huber_loss(infer, label, epsilon, reduction, layer_name):
 
     with tf.variable_scope(layer_name):
         hloss = tf.losses.huber_loss(labels=label, predictions=infer, delta=epsilon,
-                                     reduction=reduction_method)
+                                     weights=weights, reduction=reduction_method)
     return hloss
 
 
