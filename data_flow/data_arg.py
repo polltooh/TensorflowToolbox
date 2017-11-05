@@ -232,11 +232,11 @@ class DataArg(object):
 
         return data
 
-    def rflip_lr_image_box(self, image, box, mask=None, dense_map=None):
+    def rflip_lr_image_box(self, box, images):
         """
         Args:
             box: [n, 4], [xmin, ymin, xmax, ymax]
-            image: [h, w, c]
+            images: one or a list of tensors. each one has the same dims [h, w, c]
 
         """
 
@@ -245,18 +245,19 @@ class DataArg(object):
             box_x_max = image_width - box[:, 0]
             box = tf.stack([box_x_min, box[:, 1], box_x_max, box[:, 3]], 1)
             return box
+
+        if not isinstance(images, list):
+            images = [images]
         
-        image_width = image.get_shape().as_list()[1]
+        image_width = images[0].get_shape().as_list()[1]
         rflip_lr_op = tf.random_uniform([], minval = 0,
                     maxval = 2, dtype = tf.int32)
         mirror = tf.less(rflip_lr_op, 1)
-        image = tf.cond(mirror, lambda: tf.reverse(image, [1]), lambda: image)
         box = tf.cond(mirror, lambda: flip_box(box, image_width), lambda: box)
 
-        if mask is not None:
-            mask = tf.cond(mirror, lambda: tf.reverse(mask, [1]), lambda: mask)
+        output_images = list()
 
-        if dense_map is not None:
-            dense_map = tf.cond(mirror, lambda: tf.reverse(dense_map, [1]), lambda: dense_map)
+        for image in images:
+            output_images.append(tf.cond(mirror, lambda: tf.reverse(image, [1]), lambda: image))
 
-        return image, box, mask, dense_map
+        return box, output_images
