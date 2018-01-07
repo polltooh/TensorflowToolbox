@@ -310,6 +310,7 @@ class DataArg(object):
         for image in images:
             new_image = tf.py_func(_py_shift_image, [image, shift_height, True], image.dtype)
             new_image = tf.py_func(_py_shift_image, [new_image, shift_width, False], image.dtype)
+            new_image.set_shape(image.get_shape())
             output_images.append(new_image)
 
         box_x_min = box[:, 0] + shift_width
