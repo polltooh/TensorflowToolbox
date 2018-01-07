@@ -289,12 +289,13 @@ class DataArg(object):
         assert width_shift_max < image_width
 
         shift_height = tf.random_uniform([], minval = -height_shift_max,
-                                         maxval = height_shift_max, dtype = tf.int32)
+                                         maxval = height_shift_max, dtype = tf.float32)
 
         shift_width = tf.random_uniform([], minval = -width_shift_max,
-                                        maxval = width_shift_max, dtype = tf.int32)
+                                        maxval = width_shift_max, dtype = tf.float32)
 
         def _py_shift_image(image, shift_delta, is_height):
+            shift_delta = int(shift_delta)
             new_image = np.zeros(image.shape, image.dtype)
             if is_height:
                 new_image[max(0, shift_delta) : min(image_height, image_height + shift_delta), :] = \
