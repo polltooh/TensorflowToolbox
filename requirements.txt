@@ -1,2 +1,3 @@
-xmltodict>=0.10.2
-opencv-python
+numpy==1.11.0
+tensorflow==1.4.1
+termcolor==1.1.0

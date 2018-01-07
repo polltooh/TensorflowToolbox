@@ -1,5 +1,6 @@
 import tensorflow as tf
 import random
+import numpy as np
 
 class DataArg(object):
     def __init__(self):
@@ -233,7 +234,7 @@ class DataArg(object):
         return data
 
     def rflip_lr_image_box(self, box, images):
-        """
+        """ Random flip images and box.
         Args:
             box: [n, 4], [xmin, ymin, xmax, ymax]
             images: one or a list of tensors. each one has the same dims [h, w, c]
@@ -243,7 +244,14 @@ class DataArg(object):
         def flip_box(box, image_width):
             box_x_min = image_width - box[:, 2]
             box_x_max = image_width - box[:, 0]
-            box = tf.stack([box_x_min, box[:, 1], box_x_max, box[:, 3]], 1)
+
+            box = tf.stack([box_x_min, box[:, 1], box_x_max, box[:, 3]])
+
+            if len(box.shape) == 1:
+                box = tf.expand_dims(box, 0)
+            else:
+                box = tf.transpose(box)
+
             return box
 
         if not isinstance(images, list):
@@ -259,5 +267,63 @@ class DataArg(object):
 
         for image in images:
             output_images.append(tf.cond(mirror, lambda: tf.reverse(image, [1]), lambda: image))
+
+        return box, output_images
+
+    def rshift_image_box(self, box, images, height_shift_max, width_shift_max):
+        """ Ramdon shift images and box.
+
+        Args:
+            box: [n, 4], [xmin, ymin, xmax, ymax]
+            images: one or a list of tensors. each one has the same dims [h, w, c]
+            shift_max: max shift amount.
+        """
+        is_list = True
+        if not isinstance(images, list):
+            is_list = False
+            images = [images]
+
+        image_height, image_width, _ = images[0].get_shape().as_list()
+
+        assert height_shift_max < image_height
+        assert width_shift_max < image_width
+
+        shift_height = tf.random_uniform([], minval = -height_shift_max,
+                                         maxval = height_shift_max, dtype = tf.int32)
+
+        shift_width = tf.random_uniform([], minval = -width_shift_max,
+                                        maxval = width_shift_max, dtype = tf.int32)
+
+        def _py_shift_image(image, shift_delta, is_height):
+            new_image = np.zeros(image.shape, image.dtype)
+            if is_height:
+                new_image[max(0, shift_delta) : min(image_height, image_height + shift_delta), :] = \
+                            image[max(0, -shift_delta) : min(image_height, image_height - shift_delta), :]
+            else:
+                new_image[:, max(0, shift_delta) : min(image_width, image_width + shift_delta)] = \
+                            image[:, max(0, -shift_delta) : min(image_width, image_width - shift_delta)]
+
+            return new_image
+
+        output_images = list()
+        for image in images:
+            new_image = tf.py_func(_py_shift_image, [image, shift_height, True], image.dtype)
+            new_image = tf.py_func(_py_shift_image, [new_image, shift_width, False], image.dtype)
+            output_images.append(new_image)
+
+        box_x_min = box[:, 0] + shift_width
+        box_x_max = box[:, 2] + shift_width
+        box_y_min = box[:, 1] + shift_height
+        box_y_max = box[:, 3] + shift_height
+
+        box = tf.stack([box_x_min, box_y_min, box_x_max, box_y_max])
+        if len(box.shape) == 1:
+            box = tf.expand_dims(box, 0)
+        else:
+            box = tf.transpose(box)
+
+        # If image is not list, then return image should not be list.
+        if not is_list:
+            output_images = output_images[0]
 
         return box, output_images
