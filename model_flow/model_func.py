@@ -330,6 +330,7 @@ def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, outpu
     """
     with tf.variable_scope(layer_name):
         input_shape = inputs.get_shape().as_list()
+        batch_size = tf.shape(inputs)[0]
 
         kerner_initializer = tf.contrib.layers.xavier_initializer()
         bias_initializer = tf.zeros_initializer
@@ -337,11 +338,11 @@ def deconvolution_2d_layer(inputs, filters, kernel_size, strides, padding, outpu
         if data_format == "NCHW":
             input_channel = input_shape[1]
             strides = [1, 1, strides[0], strides[1]]
-            output_shape = [input_shape[0], filters, output_size[0], output_size[1]]
+            output_shape = [batch_size, filters, output_size[0], output_size[1]]
         elif data_format == "NHWC":
             input_channel = input_shape[3]
             strides = [1, strides[0], strides[1], 1]
-            output_shape = [input_shape[0], output_size[0], output_size[1], filters]
+            output_shape = [batch_size, output_size[0], output_size[1], filters]
         else:
             raise NotImplementedError
 

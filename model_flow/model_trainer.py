@@ -133,6 +133,7 @@ def model_trainer(model, num_gpus, train_input=None, test_input=None):
         test_loss = None
 
         loss, grads, test_loss = multi_grads(model, num_gpus, train_input, test_input)
+        import pdb; pdb.set_trace()
         if grads is not None:
             opt = model.model_optimizer()
             with tf.variable_scope('trainer'):

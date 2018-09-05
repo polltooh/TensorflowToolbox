@@ -1,0 +1,87 @@
+Hyperparameter tuning:
+    tuning param file: a list of params
+
+Input fn:
+    given a scope:
+        scope = 'train1', 'train2', 'test', 'adapt' ...
+
+    load_fn:
+    preprocess_fn:
+
+Input layer:
+    call input fn with different scope
+    group all different scope into train/val/test input
+
+Model fn:
+    Based on is_train: choose train input / val input / test input
+    a dict: {scope ('train') : {image: []}, {label: []}}
+    Based on the scope, choose is_training (batch norm, update the parameters)
+
+return excute_ops = a list of keys: {'train_op': train_op, 'val_op': val_op, 'test_op', test_op,
+                                     'train_extra': {'loss': loss}, 'val_extra': {},, 'test_extra': {}}
+
+user import module as params:
+    input and output of the following module should be a dictionary:
+    input_fn: train/val
+        decode input
+        preprocess input (data_arg)
+
+    model_fn:
+        model structure
+        loss
+        train_op
+        post_processing
+
+Must (contains in all the use case):
+    import config params:
+        dataset_file: train/test file json and meta
+        model_fn: network structure
+        input_fn: how to load the annotation and input data
+
+    tuneable params:
+        batch_size
+        weight_decay
+        leaky_param
+        max_training_iter
+        arg_dict
+
+    system params:
+        train_log_dir
+        string_log_name
+        gpu_fraction
+        save_per_iter
+        model_dir
+        test_per_iter
+        eval_per_iter
+        restore_model
+        partial_restore_model
+        num_gpus
+        load_queue_config
+        preprocess_queue_config
+        gpu_fraction
+
+Optional (contains in certain user case):
+
+Object Detection:
+    config params:
+        network output_shape
+        max_num_box
+        label_num
+        anchor_config
+        iou_thres
+        conf_thres
+        dense_map_lambda
+        dense_map_scale
+
+Domain Adaptation
+    config params:
+        adatp: True/False
+        adapt_scale: 1
+        source_num: 1
+        target_num: 1
+        adapt_loss_type
+        dann_loss: MAX
+        class_loss_type: MAX
+        source_type1: MNIST
+        source_type2: MNIST
+        target_type1: MNIST

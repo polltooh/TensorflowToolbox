@@ -1,0 +1,3 @@
+test_image1.jpg test_mask1.npy
+test_image2.jpg test_mask2.npy
+test_image3.jpg test_mask3.npy
