@@ -14,7 +14,7 @@ export PYTHONPATH=$PYTHONPATH:</path/to/store/>
 
 Then you should be able to import TensorflowToolbox from anywhere
 
-#### Install tensorflow, current only support version 1.2
+#### Install tensorflow, current only support version 0.12
 ~~~
 pip install tensorflow-gpu
 ~~~
